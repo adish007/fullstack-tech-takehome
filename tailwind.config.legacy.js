@@ -1,4 +1,8 @@
 /** @type {import('tailwindcss').Config} */
+/* 
+ * LEGACY VERSION - Please use tailwind.config.ts instead
+ * This file is kept for reference purposes only
+ */
 module.exports = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Workflow } from '@/lib/db';
+import { Workflow } from '@/lib/workflowDatabase';
 
 async function getWorkflows(): Promise<Workflow[]> {
   // In Next.js server components, we need to use an absolute URL
