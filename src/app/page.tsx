@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Workflow } from '@/lib/db';
 
@@ -19,8 +22,57 @@ async function getWorkflows(): Promise<Workflow[]> {
   return res.json();
 }
 
-export default async function Dashboard() {
-  const workflows = await getWorkflows();
+export default function Dashboard() {
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchWorkflows = async () => {
+      try {
+        setIsLoading(true);
+        const res = await fetch('/api/workflows', {
+          cache: 'no-store',
+        });
+        
+        if (!res.ok) {
+          throw new Error('Failed to fetch workflows');
+        }
+        
+        const data = await res.json();
+        setWorkflows(data);
+      } catch (err) {
+        setError('Failed to load workflows');
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchWorkflows();
+  }, []);
+  
+  // Filter workflows based on search term
+  const filteredWorkflows = workflows.filter(workflow => 
+    workflow.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (workflow.description && workflow.description.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+  
+  // Sort workflows based on selected sort option
+  const sortedWorkflows = [...filteredWorkflows].sort((a, b) => {
+    switch (sortBy) {
+      case 'name':
+        return a.name.localeCompare(b.name);
+      case 'created':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case 'updated':
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      default:
+        return 0; // No sorting
+    }
+  });
   
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
@@ -44,12 +96,18 @@ export default async function Dashboard() {
             <div className="flex-1">
               <input
                 type="text"
-                placeholder="Search workflows..."
+                placeholder="Search workflows by Name or Description..."
                 className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
             <div className="flex gap-2">
-              <select className="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500">
+              <select 
+                className="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+              >
                 <option value="">Sort by</option>
                 <option value="name">Name</option>
                 <option value="created">Date Created</option>
@@ -59,26 +117,54 @@ export default async function Dashboard() {
           </div>
         </div>
         
+        {/* Loading and error states */}
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-orange-500 mx-auto mb-4"></div>
+            <p>Loading workflows...</p>
+          </div>
+        )}
+        
+        {error && (
+          <div className="bg-red-900/30 border border-red-800 p-4 rounded-lg mb-8 text-center">
+            <p className="text-red-300">{error}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-2 text-white bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+        
         {/* Workflows list */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {workflows.length > 0 ? (
-            workflows.map((workflow) => (
-              <WorkflowCard key={workflow.id} workflow={workflow} />
-            ))
-          ) : (
-            <div className="col-span-full bg-zinc-900 rounded-lg border border-zinc-800 p-8 text-center">
-              <div className="text-4xl mb-4">🔍</div>
-              <h3 className="text-xl font-bold mb-2">No workflows found</h3>
-              <p className="text-zinc-400 mb-6">Get started by creating your first workflow</p>
-              <Link
-                href="/workflows/new"
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-              >
-                Create Workflow
-              </Link>
-            </div>
-          )}
-        </div>
+        {!isLoading && !error && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {sortedWorkflows.length > 0 ? (
+              sortedWorkflows.map((workflow) => (
+                <WorkflowCard key={workflow.id} workflow={workflow} />
+              ))
+            ) : (
+              <div className="col-span-full bg-zinc-900 rounded-lg border border-zinc-800 p-8 text-center">
+                <div className="text-4xl mb-4">🔍</div>
+                <h3 className="text-xl font-bold mb-2">
+                  {searchTerm ? 'No matching workflows found' : 'No workflows found'}
+                </h3>
+                <p className="text-zinc-400 mb-6">
+                  {searchTerm 
+                    ? `No workflows match "${searchTerm}". Try a different search term or create a new workflow.` 
+                    : 'Get started by creating your first workflow'}
+                </p>
+                <Link
+                  href="/workflows/new"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Create Workflow
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </main>
   );
