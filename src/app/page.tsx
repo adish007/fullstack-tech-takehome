@@ -1,156 +1,121 @@
-import Link from 'next/link'
+import Link from 'next/link';
+import { Workflow } from '@/lib/db';
 
-export default function Home() {
+async function getWorkflows(): Promise<Workflow[]> {
+  // In Next.js server components, we need to use an absolute URL
+  // Using the URL constructor to ensure a valid URL
+  const baseUrl = process.env.VERCEL_URL 
+    ? `https://${process.env.VERCEL_URL}` 
+    : 'http://localhost:3000';
+  
+  const res = await fetch(`${baseUrl}/api/workflows`, {
+    cache: 'no-store',
+  });
+  
+  if (!res.ok) {
+    throw new Error('Failed to fetch workflows');
+  }
+  
+  return res.json();
+}
+
+export default async function Dashboard() {
+  const workflows = await getWorkflows();
+  
   return (
-    <main className="min-h-screen bg-black">
-      {/* Hero Section */}
-      <section className="bg-black text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#000_0%,transparent_50%)]"></div>
-        <div className="container mx-auto px-6 py-32 relative">
-          <div className="max-w-2xl">
-            <div className="flex items-center space-x-2 mb-6">
-              <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
-              <span className="text-orange-500 font-mono">SECURITY FIRST</span>
+    <main className="min-h-screen bg-zinc-950 text-white">
+      <div className="container mx-auto px-6 py-12">
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold">Workflow Dashboard</h1>
+            <p className="text-zinc-400 mt-1">Manage and create automated workflows</p>
+          </div>
+          <Link 
+            href="/workflows/new" 
+            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          >
+            Create Workflow
+          </Link>
+        </div>
+        
+        {/* Search and filter */}
+        <div className="bg-zinc-900 p-4 rounded-lg mb-8 border border-zinc-800">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                placeholder="Search workflows..."
+                className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+              />
             </div>
-            <h1 className="text-5xl font-bold mb-6 leading-tight">
-              Secure Infrastructure
-              <span className="block text-orange-500">For The Modern Era</span>
-            </h1>
-            <p className="text-lg mb-8 text-gray-400 max-w-xl">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            </p>
-            <div className="flex space-x-4">
-              <button className="bg-orange-500 text-white px-8 py-3 rounded-lg font-medium 
-                hover:bg-orange-600 transition-all">
-                Secure Now
-              </button>
-              <button className="border border-zinc-700 text-white px-8 py-3 rounded-lg font-medium 
-                hover:border-orange-500 transition-all">
-                Discover →
-              </button>
+            <div className="flex gap-2">
+              <select className="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500">
+                <option value="">Sort by</option>
+                <option value="name">Name</option>
+                <option value="created">Date Created</option>
+                <option value="updated">Last Updated</option>
+              </select>
             </div>
           </div>
         </div>
-      </section>
-
-      {/* Trust Indicators */}
-      <section className="border-y border-zinc-800 bg-zinc-900/50">
-        <div className="container mx-auto px-6 py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-white mb-1">XX.XX%</div>
-              <div className="text-gray-400 text-sm">Security Rating</div>
+        
+        {/* Workflows list */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {workflows.length > 0 ? (
+            workflows.map((workflow) => (
+              <WorkflowCard key={workflow.id} workflow={workflow} />
+            ))
+          ) : (
+            <div className="col-span-full bg-zinc-900 rounded-lg border border-zinc-800 p-8 text-center">
+              <div className="text-4xl mb-4">🔍</div>
+              <h3 className="text-xl font-bold mb-2">No workflows found</h3>
+              <p className="text-zinc-400 mb-6">Get started by creating your first workflow</p>
+              <Link
+                href="/workflows/new"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Create Workflow
+              </Link>
             </div>
-            <div>
-              <div className="text-3xl font-bold text-white mb-1">XXK+</div>
-              <div className="text-gray-400 text-sm">Threats Blocked</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-white mb-1">X.XX M</div>
-              <div className="text-gray-400 text-sm">Protected Assets</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-white mb-1">XXX+</div>
-              <div className="text-gray-400 text-sm">Global Deployments</div>
-            </div>
-          </div>
+          )}
         </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-6">
-          <h2 className="text-2xl font-bold text-center mb-16 text-white">Advanced Protection Systems</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <FeatureCard 
-              title="Quantum Defense"
-              description="Ipsum quantum-resistant algorithmic protection with advanced entropy generation"
-              icon="🛡️"
-            />
-            <FeatureCard 
-              title="Zero-Trust Matrix"
-              description="Lorem systematic verification protocols with continuous authentication frameworks"
-              icon="🔒"
-            />
-            <FeatureCard 
-              title="Neural Shield"
-              description="Duis aute irure dolor in reprehenderit in voluptate velit"
-              icon="🔐"
-            />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-zinc-900">
-        <div className="container mx-auto px-6 max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-4 text-white">Ready for Maximum Security?</h2>
-          <p className="mb-8 text-gray-400">
-            Consectetur adipiscing elit. Join the next generation of protected enterprises.
-          </p>
-          <button className="bg-orange-500 text-white px-8 py-3 rounded-lg font-medium 
-            hover:bg-orange-600 transition-all">
-            Initialize Security Protocol
-          </button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="bg-black text-gray-400 py-12 border-t border-zinc-800">
-        <div className="container mx-auto px-6">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-white mb-4">SecureGuard</h3>
-              <p className="text-sm">
-                Lorem ipsum security solutions for the modern infrastructure paradigm
-              </p>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-4">Solutions</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">Neural Shield</Link></li>
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">Zero-Trust Matrix</Link></li>
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">Quantum Defense</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-4">Company</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">About</Link></li>
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">Certifications</Link></li>
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">Contact</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-white mb-4">Resources</h4>
-              <ul className="space-y-2">
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">Security Portal</Link></li>
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">Documentation</Link></li>
-                <li><Link href="#" className="hover:text-orange-500 transition-colors">System Status</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-zinc-800 mt-12 pt-8 text-sm text-center">
-            © 2024 SecureGuard. All rights reserved.
-          </div>
-        </div>
-      </footer>
+      </div>
     </main>
-  )
+  );
 }
 
-interface FeatureCardProps {
-  title: string;
-  description: string;
-  icon: string;
+interface WorkflowCardProps {
+  workflow: Workflow;
 }
 
-const FeatureCard = ({ title, description, icon }: FeatureCardProps) => {
+function WorkflowCard({ workflow }: WorkflowCardProps) {
+  const createdDate = new Date(workflow.createdAt).toLocaleDateString();
+  const updatedDate = new Date(workflow.updatedAt).toLocaleDateString();
+  
   return (
-    <div className="bg-zinc-900 p-8 rounded-lg border border-zinc-800 hover:border-orange-500 transition-all duration-300">
-      <div className="text-3xl mb-4">{icon}</div>
-      <h3 className="text-lg font-bold mb-3 text-white">{title}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
+    <div className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden hover:border-orange-500 transition-colors">
+      <div className="p-6">
+        <h3 className="text-xl font-bold mb-2 truncate">{workflow.name}</h3>
+        <p className="text-zinc-400 text-sm mb-4 line-clamp-2">{workflow.description || 'No description'}</p>
+        <div className="flex justify-between text-xs text-zinc-500">
+          <div>Created: {createdDate}</div>
+          <div>Updated: {updatedDate}</div>
+        </div>
+      </div>
+      <div className="bg-zinc-800 p-4 flex justify-between">
+        <Link
+          href={`/workflows/${workflow.id}`}
+          className="text-orange-500 hover:text-orange-400 transition-colors"
+        >
+          View Details
+        </Link>
+        <Link
+          href={`/workflows/${workflow.id}/edit`}
+          className="text-orange-500 hover:text-orange-400 transition-colors"
+        >
+          Edit
+        </Link>
+      </div>
     </div>
-  )
+  );
 }
