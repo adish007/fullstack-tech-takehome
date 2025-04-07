@@ -13,8 +13,8 @@ import { getWorkflowById, updateWorkflow, deleteWorkflow } from '@/lib/workflowD
  * GET /api/workflows/[id]
  * Retrieves a specific workflow by ID
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
 
   try {
     const workflow = await getWorkflowById(id);
@@ -42,8 +42,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
  * - nodes: array of workflow nodes
  * - edges: array of workflow connections
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
 
   try {
     const body = await request.json();
@@ -74,8 +74,8 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
  * DELETE /api/workflows/[id]
  * Deletes a specific workflow by ID
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+  const { id } = context.params;
 
   try {
     const success = await deleteWorkflow(id);

@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getExecutionLog } from '@/lib/serverExecutionLogger';
 
-type Params = {
-  id: string;
-}
-
 export async function GET(
-  request: NextRequest, 
-  { params }: { params: Params }
+  request: NextRequest,
+  context: { params: { id: string } }
 ) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     const log = getExecutionLog(id);
     
     if (!log) {

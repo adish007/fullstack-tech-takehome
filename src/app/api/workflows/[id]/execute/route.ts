@@ -4,9 +4,9 @@ import { executeWorkflow } from '@/lib/workflowExecutor';
 import { Edge } from '@xyflow/react';
 import { Node } from '@/types';
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, context: { params: { id: string } }) {
   try {
-    const { id } = params;
+    const { id } = context.params;
     const workflow = getWorkflowById(id);
     
     if (!workflow) {

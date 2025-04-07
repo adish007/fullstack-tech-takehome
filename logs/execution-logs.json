@@ -1,5 +1,27 @@
 [
   {
+    "id": "2f8d92e2-22dc-40a6-98a6-0fea5afaa4a2",
+    "workflowId": "04b5da6f-de11-4e8c-bdee-6df70b807fb5",
+    "workflowName": "Does not work",
+    "timestamp": "2025-04-07T05:30:48.143Z",
+    "status": "failure",
+    "executionTime": 66,
+    "error": "One or more nodes failed during execution",
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:30:48.077Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": false,
+        "timestamp": "2025-04-07T05:30:48.143Z",
+        "error": "Failed to fetch"
+      }
+    ]
+  },
+  {
     "id": "27d025d1-cf56-422f-bb38-ca55a6c5ade0",
     "workflowId": "84d7d961-fd35-4c8f-8130-0f34692ac2d6",
     "workflowName": "Works",
