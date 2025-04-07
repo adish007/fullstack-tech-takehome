@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getExecutionLog } from '@/lib/serverExecutionLogger';
 
-interface Params {
+type RouteParams = {
   params: {
     id: string;
   };
-}
+};
 
-export async function GET(request: NextRequest, { params }: Params) {
+export async function GET(
+  request: NextRequest,
+  { params }: RouteParams
+) {
   try {
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = params;
     const log = getExecutionLog(id);
     
     if (!log) {

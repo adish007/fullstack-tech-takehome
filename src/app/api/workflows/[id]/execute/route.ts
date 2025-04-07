@@ -4,16 +4,15 @@ import { executeWorkflow } from '@/lib/workflowExecutor';
 import { Edge } from '@xyflow/react';
 import { Node } from '@/types';
 
-interface Params {
+type RouteParams = {
   params: {
     id: string;
   };
-}
+};
 
-export async function POST(request: NextRequest, { params }: Params) {
+export async function POST(request: NextRequest, { params }: RouteParams) {
   try {
-    const resolvedParams = await params;
-    const { id } = resolvedParams;
+    const { id } = params;
     const workflow = getWorkflowById(id);
     
     if (!workflow) {
@@ -23,9 +22,12 @@ export async function POST(request: NextRequest, { params }: Params) {
       );
     }
     
+    const nodes = workflow.nodes as Node[];
+    const edges = workflow.edges as Edge[];
+    
     const results = await executeWorkflow(
-      workflow.nodes as Node[], 
-      workflow.edges as Edge[],
+      nodes, 
+      edges,
       workflow.id,
       workflow.name
     );
