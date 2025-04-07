@@ -618,8 +618,8 @@
           "label": "Start"
         },
         "position": {
-          "x": -149.98447656117625,
-          "y": -48.08963638005959
+          "x": -201.48447656117625,
+          "y": -69.08963638005959
         },
         "style": {
           "background": "#f97316",
@@ -643,12 +643,13 @@
             "url": "https://jsonplaceholder.typicode.com/users/1",
             "method": "GET",
             "headers": {},
-            "body": {}
+            "body": {},
+            "provider": "custom"
           }
         },
         "position": {
-          "x": 83.60952634979006,
-          "y": -7.949635116481442
+          "x": -205.89047365020994,
+          "y": 5.050364883518558
         },
         "style": {
           "background": "#3b82f6",
@@ -676,8 +677,38 @@
           }
         },
         "position": {
-          "x": -56.03071618152783,
-          "y": 95.90905836392719
+          "x": -188.03071618152782,
+          "y": 76.90905836392719
+        },
+        "style": {
+          "background": "#3b82f6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "node_1743990378095",
+        "type": "default",
+        "data": {
+          "label": "Api",
+          "apiRoute": {
+            "url": "https://api.stripe.com/v1/customers",
+            "method": "GET",
+            "headers": {},
+            "body": {},
+            "provider": "stripe"
+          }
+        },
+        "position": {
+          "x": -68.69487896088663,
+          "y": 161.62407398290745
         },
         "style": {
           "background": "#3b82f6",
@@ -703,10 +734,15 @@
         "source": "node_2",
         "target": "node_1743987536229",
         "id": "xy-edge__node_2-node_1743987536229"
+      },
+      {
+        "source": "node_1743987536229",
+        "target": "node_1743990378095",
+        "id": "xy-edge__node_1743987536229-node_1743990378095"
       }
     ],
     "id": "2f0df6e6-7ff6-465e-b456-e215fb465aeb",
     "createdAt": "2025-04-07T00:47:31.618Z",
-    "updatedAt": "2025-04-07T00:59:19.661Z"
+    "updatedAt": "2025-04-07T01:46:48.622Z"
   }
 ]

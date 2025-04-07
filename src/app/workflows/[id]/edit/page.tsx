@@ -36,6 +36,7 @@ interface ApiRoute {
   method: string;
   headers: Record<string, string>;
   body: any;
+  provider?: string; // Add provider field to identify Stripe API calls
 }
 
 // Define custom node data type with index signature
@@ -99,7 +100,8 @@ export default function EditWorkflow() {
           url: '',
           method: 'GET',
           headers: {},
-          body: {}
+          body: {},
+          provider: 'custom' // Default to custom API provider
         } : undefined
       },
       position: { 
@@ -378,13 +380,27 @@ export default function EditWorkflow() {
             
             <div className="space-y-4">
               <div>
+                <label className="block mb-1 text-sm font-medium">API Provider</label>
+                <select
+                  value={(selectedNode.data as NodeData).apiRoute?.provider || 'custom'}
+                  onChange={(e) => handleApiRouteChange('provider', e.target.value)}
+                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
+                >
+                  <option value="custom">Custom API</option>
+                  <option value="stripe">Stripe API</option>
+                </select>
+              </div>
+              
+              <div>
                 <label className="block mb-1 text-sm font-medium">API URL</label>
                 <input
                   type="text"
                   value={(selectedNode.data as NodeData).apiRoute?.url || ''}
                   onChange={(e) => handleApiRouteChange('url', e.target.value)}
                   className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-                  placeholder="https://api.example.com/endpoint"
+                  placeholder={(selectedNode.data as NodeData).apiRoute?.provider === 'stripe' 
+                    ? "https://api.stripe.com/v1/customers" 
+                    : "https://api.example.com/endpoint"}
                 />
               </div>
               
