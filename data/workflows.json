@@ -171,6 +171,36 @@
           "width": 150,
           "height": 39
         }
+      },
+      {
+        "id": "node_1744011360267",
+        "type": "default",
+        "data": {
+          "label": "Api",
+          "apiRoute": {
+            "url": "",
+            "method": "GET",
+            "headers": {},
+            "body": {},
+            "provider": "custom"
+          }
+        },
+        "position": {
+          "x": 540.5800387769559,
+          "y": 103.2449849655572
+        },
+        "style": {
+          "background": "#3b82f6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
       }
     ],
     "edges": [
@@ -183,11 +213,16 @@
         "source": "node_2",
         "target": "node_3",
         "id": "xy-edge__node_2-node_3"
+      },
+      {
+        "source": "node_2",
+        "target": "node_1744011360267",
+        "id": "xy-edge__node_2-node_1744011360267"
       }
     ],
     "id": "84d7d961-fd35-4c8f-8130-0f34692ac2d6",
     "createdAt": "2025-04-07T05:15:23.454Z",
-    "updatedAt": "2025-04-07T05:15:23.454Z"
+    "updatedAt": "2025-04-07T07:38:12.732Z"
   },
   {
     "name": "Stripe WF",
