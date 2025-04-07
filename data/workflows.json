@@ -506,7 +506,7 @@
     "updatedAt": "2025-04-07T23:40:25.190Z"
   },
   {
-    "name": "aaaa",
+    "name": "sasxasx",
     "description": "",
     "nodes": [
       {
@@ -516,8 +516,8 @@
           "label": "Start"
         },
         "position": {
-          "x": 250,
-          "y": 25
+          "x": 246.5,
+          "y": 22.5
         },
         "style": {
           "background": "#f97316",
@@ -528,12 +528,48 @@
         "measured": {
           "width": 150,
           "height": 40
+        },
+        "selected": true,
+        "dragging": false
+      },
+      {
+        "id": "node_2",
+        "type": "default",
+        "data": {
+          "label": "Api",
+          "apiRoute": {
+            "url": "",
+            "method": "GET",
+            "headers": {},
+            "body": {},
+            "provider": "custom"
+          }
+        },
+        "position": {
+          "x": 153.80675554617454,
+          "y": 292.11569998506747
+        },
+        "style": {
+          "background": "#3b82f6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
         }
       }
     ],
-    "edges": [],
-    "id": "52e213e2-0681-45cb-882e-7ccf511c683c",
-    "createdAt": "2025-04-07T23:42:36.530Z",
-    "updatedAt": "2025-04-07T23:42:36.530Z"
+    "edges": [
+      {
+        "source": "start",
+        "target": "node_2",
+        "id": "xy-edge__start-node_2"
+      }
+    ],
+    "id": "5b0f9f7d-00b6-4372-861d-1ed642cb050a",
+    "createdAt": "2025-04-07T23:43:14.537Z",
+    "updatedAt": "2025-04-07T23:43:14.537Z"
   }
 ]
