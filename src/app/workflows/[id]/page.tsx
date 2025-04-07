@@ -213,12 +213,6 @@ export default function WorkflowDetail() {
         )}
 
         <div className="flex justify-between">
-          <button
-            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            onClick={() => alert('Delete functionality would be implemented here')}
-          >
-            Delete Workflow
-          </button>
 
           <button
             className={`${
