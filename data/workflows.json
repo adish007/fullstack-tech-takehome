@@ -504,5 +504,64 @@
     "id": "8e55622c-15cf-40ba-9e11-6639f5af813f",
     "createdAt": "2025-04-07T23:40:25.190Z",
     "updatedAt": "2025-04-07T23:40:25.190Z"
+  },
+  {
+    "name": "cascscacacv qqq",
+    "description": "czcz",
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input",
+        "data": {
+          "label": "Start"
+        },
+        "position": {
+          "x": 250,
+          "y": 25
+        },
+        "style": {
+          "background": "#f97316",
+          "color": "white",
+          "border": "1px solid #c2410c",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        }
+      },
+      {
+        "id": "node_2",
+        "type": "default",
+        "data": {
+          "label": "Api",
+          "apiRoute": {
+            "url": "",
+            "method": "GET",
+            "headers": {},
+            "body": {},
+            "provider": "custom"
+          }
+        },
+        "position": {
+          "x": 133.23293451579883,
+          "y": 161.67605140371273
+        },
+        "style": {
+          "background": "#3b82f6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        }
+      }
+    ],
+    "edges": [],
+    "id": "eb6675ee-690e-4d02-8bc8-b1dc34d05601",
+    "createdAt": "2025-04-07T23:41:20.568Z",
+    "updatedAt": "2025-04-07T23:41:20.568Z"
   }
 ]
