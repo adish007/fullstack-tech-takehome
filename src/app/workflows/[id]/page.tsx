@@ -5,9 +5,10 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Workflow } from '@/lib/workflowDatabase';
 import WorkflowViewer from '@/components/WorkflowViewer';
+import OnboardingGuide from '@/components/OnboardingGuide';
 import { Node as XYFlowNode, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { executeWorkflow } from '@/lib/workflowExecutor';
+import { executeWorkflow, hasOutputNode, findOutputNodes } from '@/lib/workflowExecutor';
 
 export default function WorkflowDetail() {
   const { id } = useParams();
@@ -19,6 +20,7 @@ export default function WorkflowDetail() {
   const [isExecuting, setIsExecuting] = useState(false);
   const [executionResults, setExecutionResults] = useState<any[]>([]);
   const [executionError, setExecutionError] = useState('');
+  const [hasOutput, setHasOutput] = useState(false);
 
   useEffect(() => {
     const fetchWorkflow = async () => {
@@ -33,6 +35,11 @@ export default function WorkflowDetail() {
 
         const data = await res.json();
         setWorkflow(data);
+        
+        // Check if the workflow has any output nodes
+        if (data.nodes) {
+          setHasOutput(hasOutputNode(data.nodes));
+        }
       } catch (err: any) {
         setError(err.message || 'An unexpected error occurred.');
       } finally {
@@ -56,6 +63,11 @@ export default function WorkflowDetail() {
         workflow.edges as Edge[]
       );
       setExecutionResults(results);
+      
+      // If no results and we have output nodes, it means no nodes are connected to output
+      if (results.length === 0 && hasOutput) {
+        setExecutionError('No execution results available. Make sure your nodes are properly connected to an Output node.');
+      }
     } catch (err: any) {
       setExecutionError(err.message || 'Failed to execute workflow');
     } finally {
@@ -90,9 +102,14 @@ export default function WorkflowDetail() {
 
   const createdDate = new Date(workflow.createdAt).toLocaleString();
   const updatedDate = new Date(workflow.updatedAt).toLocaleString();
+  
+  // Find all output nodes in the workflow
+  const outputNodes = findOutputNodes(workflow.nodes as any[]);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
+      <OnboardingGuide />
+      
       <div className="container mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -143,6 +160,16 @@ export default function WorkflowDetail() {
             edges={workflow.edges as Edge[]} 
           />
         </div>
+
+        {!hasOutput && (
+          <div className="bg-yellow-900/30 border border-yellow-800 text-yellow-200 p-4 rounded-lg mb-6">
+            <h3 className="font-bold mb-2">Output Node Required</h3>
+            <p>
+              To see execution results, you need to add an Output node to your workflow. 
+              Edit the workflow to add an Output node and connect your nodes to it.
+            </p>
+          </div>
+        )}
 
         {executionResults.length > 0 && (
           <div className="bg-zinc-900 rounded-lg border border-zinc-800 mb-6 overflow-hidden">
@@ -196,23 +223,13 @@ export default function WorkflowDetail() {
           <button
             className={`${
               isExecuting 
-                ? 'bg-gray-600 cursor-not-allowed' 
+                ? 'bg-zinc-600 cursor-not-allowed' 
                 : 'bg-green-600 hover:bg-green-700'
-            } text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center`}
+            } text-white px-6 py-2 rounded-lg font-medium transition-colors`}
             onClick={handleExecuteWorkflow}
             disabled={isExecuting}
           >
-            {isExecuting ? (
-              <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                Executing...
-              </>
-            ) : (
-              'Execute Workflow'
-            )}
+            {isExecuting ? 'Executing...' : 'Execute Workflow'}
           </button>
         </div>
       </div>

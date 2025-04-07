@@ -85,11 +85,25 @@ export const findNextNodes = (sourceNodeId: string, edges: Edge[], nodes: Node[]
 };
 
 /**
+ * Checks if the workflow contains at least one output node
+ */
+export const hasOutputNode = (nodes: Node[]): boolean => {
+  return nodes.some(node => node.type === 'output' || node.data.label === 'Output');
+};
+
+/**
+ * Finds all output nodes in the workflow
+ */
+export const findOutputNodes = (nodes: Node[]): Node[] => {
+  return nodes.filter(node => node.type === 'output' || node.data.label === 'Output');
+};
+
+/**
  * Executes an API request based on the node configuration
  */
 export const executeNodeRequest = async (node: Node): Promise<any> => {
   if (!node.data.apiRoute) {
-    return { message: 'No API route defined for this node' };
+    return { message: 'Output Node: No API route defined for this node' };
   }
 
   const { url, method, headers = {}, body, provider } = node.data.apiRoute;
@@ -132,18 +146,50 @@ export const executeNodeRequest = async (node: Node): Promise<any> => {
 };
 
 /**
+ * Checks if a node is connected to an output node (directly or indirectly)
+ */
+export const isConnectedToOutput = (
+  nodeId: string, 
+  edges: Edge[], 
+  nodes: Node[], 
+  visited: Set<string> = new Set()
+): boolean => {
+  // Prevent infinite loops in cyclic graphs
+  if (visited.has(nodeId)) return false;
+  visited.add(nodeId);
+  
+  const node = nodes.find(n => n.id === nodeId);
+  if (!node) return false;
+  
+  // Check if this is an output node
+  if (node.type === 'output' || node.data.label === 'Output') {
+    return true;
+  }
+  
+  // Check if any next nodes are connected to output
+  const nextNodes = findNextNodes(nodeId, edges, nodes);
+  return nextNodes.some(nextNode => 
+    isConnectedToOutput(nextNode.id, edges, nodes, new Set([...visited]))
+  );
+};
+
+/**
  * Executes a workflow by starting at the start node and following connections
  */
 export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<ExecutionResult[]> => {
-  const results: ExecutionResult[] = [];
+  const allResults: ExecutionResult[] = [];
   const startNode = findStartNode(nodes, edges);
   
   if (!startNode) {
     throw new Error('No start node found in the workflow');
   }
   
+  // Check if the workflow has any output nodes
+  const outputNodes = findOutputNodes(nodes);
+  const hasOutput = outputNodes.length > 0;
+  
   // Add start node to results
-  results.push({
+  allResults.push({
     nodeId: startNode.id,
     success: true,
     data: { message: 'Workflow execution started' },
@@ -177,7 +223,7 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
         // Execute the node's request
         const data = await executeNodeRequest(node);
         
-        results.push({
+        allResults.push({
           nodeId: node.id,
           success: true,
           data,
@@ -190,7 +236,7 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
           previousResults: data 
         });
       } catch (error: any) {
-        results.push({
+        allResults.push({
           nodeId: node.id,
           success: false,
           error: error.message || 'Unknown error',
@@ -203,5 +249,25 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
     }
   }
   
-  return results;
+  // If there are output nodes, filter results to only include nodes that lead to an output node
+  if (hasOutput) {
+    // Create a set of node IDs that are connected to output nodes
+    const nodesConnectedToOutput = new Set<string>();
+    
+    // Add all output nodes to the set
+    outputNodes.forEach(node => nodesConnectedToOutput.add(node.id));
+    
+    // For each node, check if it's connected to an output node
+    nodes.forEach(node => {
+      if (isConnectedToOutput(node.id, edges, nodes)) {
+        nodesConnectedToOutput.add(node.id);
+      }
+    });
+    
+    // Filter results to only include nodes that are connected to output
+    return allResults.filter(result => nodesConnectedToOutput.has(result.nodeId));
+  }
+  
+  // If no output nodes, return an empty array (no results shown)
+  return hasOutput ? allResults : [];
 };

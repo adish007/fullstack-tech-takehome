@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Workflow } from '@/lib/workflowDatabase';
+import OnboardingButton from '@/components/OnboardingButton';
+import OnboardingGuide from '@/components/OnboardingGuide';
 
 async function getWorkflows(): Promise<Workflow[]> {
   // In Next.js server components, we need to use an absolute URL
@@ -76,18 +78,24 @@ export default function Dashboard() {
   
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
+      {/* Include the onboarding guide component */}
+      <OnboardingGuide />
+      
       <div className="container mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold">Workflow Dashboard</h1>
             <p className="text-zinc-400 mt-1">Manage and create automated workflows</p>
           </div>
-          <Link 
-            href="/workflows/new" 
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            Create Workflow
-          </Link>
+          <div className="flex space-x-4">
+            <OnboardingButton />
+            <Link 
+              href="/workflows/new" 
+              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+            >
+              Create Workflow
+            </Link>
+          </div>
         </div>
         
         {/* Search and filter */}

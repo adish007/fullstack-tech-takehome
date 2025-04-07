@@ -18,6 +18,7 @@ import {
   NodeMouseHandler
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import OnboardingGuide from '@/components/OnboardingGuide';
 
 // Define interface for workflow
 interface Workflow {
@@ -246,6 +247,9 @@ export default function EditWorkflow() {
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">
+      {/* Include the onboarding guide component */}
+      <OnboardingGuide />
+      
       <div className="container mx-auto px-6 py-12">
         <div className="flex justify-between items-center mb-8">
           <div>
