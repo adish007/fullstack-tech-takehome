@@ -1,5 +1,30 @@
 [
   {
+    "id": "49cedb16-76ab-422b-8a79-9ebec9c2ebe3",
+    "workflowId": "84d7d961-fd35-4c8f-8130-0f34692ac2d6",
+    "workflowName": "Works",
+    "timestamp": "2025-04-07T05:59:15.495Z",
+    "status": "success",
+    "executionTime": 193,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:59:15.302Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:59:15.495Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:59:15.495Z"
+      }
+    ]
+  },
+  {
     "id": "27d025d1-cf56-422f-bb38-ca55a6c5ade0",
     "workflowId": "84d7d961-fd35-4c8f-8130-0f34692ac2d6",
     "workflowName": "Works",

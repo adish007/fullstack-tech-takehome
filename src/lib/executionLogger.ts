@@ -20,12 +20,36 @@ export interface ExecutionLogEntry {
   }[];
 }
 
+// Helper function to get the base URL
+const getBaseUrl = () => {
+  // Check if we're running on the server and process.env is available
+  if (typeof window === 'undefined') {
+    // Server-side: use a relative URL for internal API calls
+    return '';
+  }
+  // Client-side: use the window location
+  return window.location.origin;
+};
+
 /**
  * Logs an execution by sending it to the API endpoint
  */
 export const logExecution = async (logEntry: ExecutionLogEntry): Promise<void> => {
   try {
-    await fetch('/api/execution-logs', {
+    // Check if we're on the server or client
+    if (typeof window === 'undefined') {
+      // On the server side, just log to console
+      // In a production app, we would store this in a database directly
+      console.log('[Server] Execution log:', logEntry);
+      
+      // For this demo app, we'll skip the API call when on the server
+      // to avoid the Invalid URL error
+      return;
+    } 
+    
+    // On the client side, use regular fetch with the window.location.origin
+    const baseUrl = window.location.origin;
+    await fetch(`${baseUrl}/api/execution-logs`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -42,7 +66,13 @@ export const logExecution = async (logEntry: ExecutionLogEntry): Promise<void> =
  */
 export const getWorkflowExecutionLogs = async (workflowId: string): Promise<ExecutionLogEntry[]> => {
   try {
-    const response = await fetch(`/api/execution-logs?workflowId=${workflowId}`);
+    // Only available on the client side
+    if (typeof window === 'undefined') {
+      return [];
+    }
+    
+    const baseUrl = window.location.origin;
+    const response = await fetch(`${baseUrl}/api/execution-logs?workflowId=${workflowId}`);
     return await response.json();
   } catch (error) {
     console.error('Error getting workflow execution logs:', error);
@@ -55,7 +85,13 @@ export const getWorkflowExecutionLogs = async (workflowId: string): Promise<Exec
  */
 export const getExecutionLog = async (executionId: string): Promise<ExecutionLogEntry | undefined> => {
   try {
-    const response = await fetch(`/api/execution-logs/${executionId}`);
+    // Only available on the client side
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    
+    const baseUrl = window.location.origin;
+    const response = await fetch(`${baseUrl}/api/execution-logs/${executionId}`);
     if (response.ok) {
       return await response.json();
     } else {
@@ -72,7 +108,13 @@ export const getExecutionLog = async (executionId: string): Promise<ExecutionLog
  */
 export const deleteWorkflowExecutionLogs = async (workflowId: string): Promise<void> => {
   try {
-    await fetch(`/api/execution-logs?workflowId=${workflowId}`, {
+    // Only available on the client side
+    if (typeof window === 'undefined') {
+      return;
+    }
+    
+    const baseUrl = window.location.origin;
+    await fetch(`${baseUrl}/api/execution-logs?workflowId=${workflowId}`, {
       method: 'DELETE',
     });
   } catch (error) {

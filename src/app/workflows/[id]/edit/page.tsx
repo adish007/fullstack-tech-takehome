@@ -20,6 +20,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import OnboardingGuide from '@/components/OnboardingGuide';
+import { getBaseUrl } from '@/lib/apiUtils';
 
 // Define interface for workflow
 interface Workflow {
@@ -67,7 +68,7 @@ export default function EditWorkflow() {
   useEffect(() => {
     const fetchWorkflow = async () => {
       try {
-        const response = await fetch(`/api/workflows/${id}`);
+        const response = await fetch(`${getBaseUrl()}/api/workflows/${id}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch workflow');
@@ -137,7 +138,7 @@ export default function EditWorkflow() {
     setError('');
     
     try {
-      const response = await fetch(`/api/workflows/${id}`, {
+      const response = await fetch(`${getBaseUrl()}/api/workflows/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -167,7 +168,7 @@ export default function EditWorkflow() {
     }
     
     try {
-      const response = await fetch(`/api/workflows/${id}`, {
+      const response = await fetch(`${getBaseUrl()}/api/workflows/${id}`, {
         method: 'DELETE',
       });
       

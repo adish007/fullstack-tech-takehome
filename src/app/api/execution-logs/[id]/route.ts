@@ -9,7 +9,8 @@ interface Params {
 
 export async function GET(request: NextRequest, { params }: Params) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const log = getExecutionLog(id);
     
     if (!log) {

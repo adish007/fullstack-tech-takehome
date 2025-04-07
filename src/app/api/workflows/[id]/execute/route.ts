@@ -12,7 +12,8 @@ interface Params {
 
 export async function POST(request: NextRequest, { params }: Params) {
   try {
-    const { id } = params;
+    const resolvedParams = await params;
+    const { id } = resolvedParams;
     const workflow = getWorkflowById(id);
     
     if (!workflow) {

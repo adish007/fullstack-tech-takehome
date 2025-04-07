@@ -9,6 +9,7 @@ import OnboardingGuide from '@/components/OnboardingGuide';
 import { Node as XYFlowNode, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { executeWorkflow, hasOutputNode, findOutputNodes } from '@/lib/workflowExecutor';
+import { getBaseUrl } from '@/lib/apiUtils';
 
 export default function WorkflowDetail() {
   const { id } = useParams();
@@ -25,7 +26,7 @@ export default function WorkflowDetail() {
   useEffect(() => {
     const fetchWorkflow = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/workflows/${id}`, {
+        const res = await fetch(`${getBaseUrl()}/api/workflows/${id}`, {
           cache: 'no-store',
         });
 

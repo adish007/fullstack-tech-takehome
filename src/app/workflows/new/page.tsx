@@ -19,6 +19,7 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import OnboardingGuide from '@/components/OnboardingGuide';
+import { getBaseUrl } from '@/lib/apiUtils';
 
 // Define interface for API route properties
 interface ApiRoute {
@@ -256,7 +257,7 @@ export default function NewWorkflow() {
     setError('');
     
     try {
-      const response = await fetch('/api/workflows', {
+      const response = await fetch(`${getBaseUrl()}/api/workflows`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

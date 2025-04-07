@@ -2,7 +2,19 @@
  * API utilities for making consistent fetch requests
  */
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '';
+// Helper function to get the base URL
+export const getBaseUrl = () => {
+  // Check if we're running on the server and process.env is available
+  if (typeof window === 'undefined') {
+    // Server-side: use the NEXTAUTH_URL or fallback to localhost
+    // For server-side API calls, we need to use a relative URL
+    return '';
+  }
+  // Client-side: use the window location or NEXT_PUBLIC_API_URL
+  return process.env.NEXT_PUBLIC_API_URL || window.location.origin;
+};
+
+export const API_BASE_URL = getBaseUrl();
 
 /**
  * Makes a fetch request to the API with standardized error handling
