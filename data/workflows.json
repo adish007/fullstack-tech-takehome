@@ -443,5 +443,102 @@
     "id": "f2e4225f-c7b9-45bd-9cce-b99fc7cba23f",
     "createdAt": "2025-04-07T06:39:51.318Z",
     "updatedAt": "2025-04-07T06:40:56.656Z"
+  },
+  {
+    "name": "Adish's Flow",
+    "description": "Test",
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input",
+        "data": {
+          "label": "Start"
+        },
+        "position": {
+          "x": 112,
+          "y": -24.5
+        },
+        "style": {
+          "background": "#f97316",
+          "color": "white",
+          "border": "1px solid #c2410c",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "node_2",
+        "type": "default",
+        "data": {
+          "label": "Api",
+          "apiRoute": {
+            "url": "https://jsonplaceholder.typicode.com/users/3",
+            "method": "GET",
+            "headers": {},
+            "body": {},
+            "provider": "custom"
+          }
+        },
+        "position": {
+          "x": 184.4846443014326,
+          "y": 37.06174142326836
+        },
+        "style": {
+          "background": "#3b82f6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "node_3",
+        "type": "output",
+        "data": {
+          "label": "Output"
+        },
+        "position": {
+          "x": 254.5935248310052,
+          "y": 126.17975008352269
+        },
+        "style": {
+          "background": "#8b5cf6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      }
+    ],
+    "edges": [
+      {
+        "source": "start",
+        "target": "node_2",
+        "id": "xy-edge__start-node_2"
+      },
+      {
+        "source": "node_2",
+        "target": "node_3",
+        "id": "xy-edge__node_2-node_3"
+      }
+    ],
+    "id": "91a94f63-43b1-46fa-addf-b6e6492348f3",
+    "createdAt": "2025-04-07T23:35:54.383Z",
+    "updatedAt": "2025-04-07T23:35:54.383Z"
   }
 ]
