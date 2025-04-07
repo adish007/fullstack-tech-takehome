@@ -45,70 +45,61 @@ Create a full-stack Next.js application that enables users to build and execute 
    - Add execution history and logs
    - Support canceling running workflows
 
-## Evaluation Criteria
 
-Your submission will be evaluated based on:
-
-### 1. User Experience (50%)
-- Intuitive and responsive interface
-- Clear and effective onboarding process
-- Thoughtful error handling and feedback
-- Mobile responsiveness
-- Loading states and animations
-- Accessibility compliance
-
-### 2. Technical Implementation (30%)
-- Code organization and architecture
-- State management approach
-- API design and implementation
-- Performance optimization
-- Security considerations
-- Testing coverage (unit, integration, e2e)
-- Type safety (TypeScript)
-
-### 3. Additional Features (20%)
-- Innovation beyond core requirements
-- Documentation quality
-- Deployment configuration
-- Development setup
-- Git commit history and organization
-
-## Getting Started
+### Setup Instructions
 
 1. Clone this repository
 2. Install dependencies:
-   ```bash
+   ```
    npm install
-   # or
-   yarn install
    ```
-3. Set up environment variables:
+3. Set up .env variables:
    ```
-   STRIPE_SECRET_KEY=your_stripe_key
+   NEXT_PUBLIC_STRIPE_SECRET_KEY=your_stripe_key
+   NEXT_PUBLIC_OPEN_AI_KEY=your_openai_key
    ```
 4. Run the development server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
    ```
+   npm run dev
+   ```
+5. Access the application:
+   - Open your browser and navigate to `http://localhost:3000`
 
-## Submission Requirements
 
-1. Source code in a private GitHub repository
-2. README with:
-   - Setup instructions
-   - Architecture overview
-   - Technical decisions and tradeoffs
-   - Future improvements
-3. Deployed demo (Vercel recommended)
-4. Video walkthrough of key features
 
-## Time Expectation
+### Architecture overview
+This application is a workflow automation platform built with a modern full-stack architecture:
 
-- Expected completion time: 6-8 hours
-- Maximum time limit: 12 hours
+Frontend
+Next.js 15: Provides the React framework with server-side rendering capabilities
+React Flow (@xyflow/react): Powers the interactive workflow editor with drag-and-drop node connections
+TailwindCSS: Handles styling throughout the application
+Backend
+Next.js API Routes: Serverless functions that handle API requests
+In-memory Database: Simulates persistence for workflows and execution logs
+Workflow Executor: Core engine that processes workflow nodes sequentially
+Key Components
+Workflow System
+Workflow Editor: Visual interface for creating and editing workflows
+Node Types:
+API Nodes: Make HTTP requests to custom endpoints or integrated services
+Transform Nodes: Process data using OpenAI's GPT-4o for cleaning and formatting
+Start/Output Nodes: Control workflow execution flow
+Integrations
+Stripe API: Integrated payment processing with customer profile management
+OpenAI: AI-powered data transformation capabilities
 
-You're encouraged to draw from both your own design experience/taste as well as research on best practices from existing best-of-class workflow builders. Focus on delivering a polished core experience rather than implementing every possible feature.
 
-We understand that there are token costs associated with using the Stripe API, so we've provided a test key and credentials for you to use. We will also reimburse for any token or subscription costs incurred up to $100.
+### Technical decisions and tradeoffs
+
+1. In-memory Database: Opted for simplicity over persistence. Quick to implement, but is not suitable for production use.
+
+
+### Future improvements
+
+1. Add database integration for persistent storage of workflows and execution logs
+2. Add authentication and authorization for security
+3. Add support for more node types and integrations
+4. Add support for more data transformation capabilities
+
+

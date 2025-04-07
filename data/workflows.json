@@ -92,7 +92,7 @@
     ],
     "id": "04b5da6f-de11-4e8c-bdee-6df70b807fb5",
     "createdAt": "2025-04-07T05:13:16.868Z",
-    "updatedAt": "2025-04-07T05:13:16.868Z"
+    "updatedAt": "2025-04-07T06:44:13.045Z"
   },
   {
     "name": "Works",
@@ -188,5 +188,225 @@
     "id": "84d7d961-fd35-4c8f-8130-0f34692ac2d6",
     "createdAt": "2025-04-07T05:15:23.454Z",
     "updatedAt": "2025-04-07T05:15:23.454Z"
+  },
+  {
+    "name": "Stripe WF",
+    "description": "Stripe",
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input",
+        "data": {
+          "label": "Start"
+        },
+        "position": {
+          "x": -209.3804593091861,
+          "y": -46.62420028865693
+        },
+        "style": {
+          "background": "#f97316",
+          "color": "white",
+          "border": "1px solid #c2410c",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "node_2",
+        "type": "default",
+        "data": {
+          "label": "Api",
+          "apiRoute": {
+            "url": "https://api.stripe.com/v1/customers",
+            "method": "GET",
+            "headers": {},
+            "body": {},
+            "provider": "stripe"
+          }
+        },
+        "position": {
+          "x": 122.07454280718784,
+          "y": 20.055829770841733
+        },
+        "style": {
+          "background": "#3b82f6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "node_3",
+        "type": "output",
+        "data": {
+          "label": "Output"
+        },
+        "position": {
+          "x": 408.1127981052471,
+          "y": 98.87969265127634
+        },
+        "style": {
+          "background": "#8b5cf6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      }
+    ],
+    "edges": [
+      {
+        "source": "start",
+        "target": "node_2",
+        "id": "xy-edge__start-node_2"
+      },
+      {
+        "source": "node_2",
+        "target": "node_3",
+        "id": "xy-edge__node_2-node_3"
+      }
+    ],
+    "id": "b375da32-1d47-4c40-bca6-c22eeaa169ff",
+    "createdAt": "2025-04-07T06:35:01.261Z",
+    "updatedAt": "2025-04-07T06:35:44.814Z"
+  },
+  {
+    "name": "Charlie is Cool",
+    "description": "",
+    "nodes": [
+      {
+        "id": "start",
+        "type": "input",
+        "data": {
+          "label": "Start"
+        },
+        "position": {
+          "x": 95,
+          "y": -33
+        },
+        "style": {
+          "background": "#f97316",
+          "color": "white",
+          "border": "1px solid #c2410c",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "node_3",
+        "type": "default",
+        "data": {
+          "label": "Api",
+          "apiRoute": {
+            "url": "https://jsonplaceholder.typicode.com/users/3",
+            "method": "GET",
+            "headers": {},
+            "body": {},
+            "provider": "custom"
+          }
+        },
+        "position": {
+          "x": 44.24997517251117,
+          "y": 94.69670898970709
+        },
+        "style": {
+          "background": "#3b82f6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      },
+      {
+        "id": "node_4",
+        "type": "output",
+        "data": {
+          "label": "Output"
+        },
+        "position": {
+          "x": 131.76168413428434,
+          "y": 221.43820959607865
+        },
+        "style": {
+          "background": "#8b5cf6",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        }
+      },
+      {
+        "id": "node_1744008050268",
+        "type": "default",
+        "data": {
+          "label": "Transform"
+        },
+        "position": {
+          "x": 302.51976314561955,
+          "y": 113.95444193028236
+        },
+        "style": {
+          "background": "#10b981",
+          "color": "white",
+          "border": "1px solid rgba(0,0,0,0.1)",
+          "width": 150
+        },
+        "measured": {
+          "width": 150,
+          "height": 40
+        },
+        "selected": false,
+        "dragging": false
+      }
+    ],
+    "edges": [
+      {
+        "source": "start",
+        "target": "node_3",
+        "id": "xy-edge__start-node_3"
+      },
+      {
+        "source": "node_3",
+        "target": "node_1744008050268",
+        "id": "xy-edge__node_3-node_1744008050268"
+      },
+      {
+        "source": "node_1744008050268",
+        "target": "node_4",
+        "id": "xy-edge__node_1744008050268-node_4"
+      }
+    ],
+    "id": "f2e4225f-c7b9-45bd-9cce-b99fc7cba23f",
+    "createdAt": "2025-04-07T06:39:51.318Z",
+    "updatedAt": "2025-04-07T06:40:56.656Z"
   }
 ]
