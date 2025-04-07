@@ -445,8 +445,8 @@
     "updatedAt": "2025-04-07T06:40:56.656Z"
   },
   {
-    "name": "Adish's Flow",
-    "description": "Test",
+    "name": "MyWorkFlow",
+    "description": "aaa",
     "nodes": [
       {
         "id": "start",
@@ -455,8 +455,8 @@
           "label": "Start"
         },
         "position": {
-          "x": 112,
-          "y": -24.5
+          "x": 137.5,
+          "y": -35.5
         },
         "style": {
           "background": "#f97316",
@@ -485,8 +485,8 @@
           }
         },
         "position": {
-          "x": 184.4846443014326,
-          "y": 37.06174142326836
+          "x": 334.20511618226783,
+          "y": 64.12706667518444
         },
         "style": {
           "background": "#3b82f6",
@@ -508,8 +508,8 @@
           "label": "Output"
         },
         "position": {
-          "x": 254.5935248310052,
-          "y": 126.17975008352269
+          "x": 365.18698161217236,
+          "y": 128.43948782884902
         },
         "style": {
           "background": "#8b5cf6",
@@ -520,9 +520,7 @@
         "measured": {
           "width": 150,
           "height": 40
-        },
-        "selected": false,
-        "dragging": false
+        }
       }
     ],
     "edges": [
@@ -537,8 +535,8 @@
         "id": "xy-edge__node_2-node_3"
       }
     ],
-    "id": "91a94f63-43b1-46fa-addf-b6e6492348f3",
-    "createdAt": "2025-04-07T23:35:54.383Z",
-    "updatedAt": "2025-04-07T23:35:54.383Z"
+    "id": "ff91a477-eb15-4211-9e58-18cfced7a575",
+    "createdAt": "2025-04-07T23:36:22.821Z",
+    "updatedAt": "2025-04-07T23:36:22.821Z"
   }
 ]
