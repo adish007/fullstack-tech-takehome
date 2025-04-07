@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getExecutionLog } from '@/lib/serverExecutionLogger';
 
-interface Params {
-  params: {
-    id: string;
-  };
+type Params = {
+  id: string;
 }
 
-export async function GET(request: NextRequest, { params }: Params) {
+export async function GET(
+  request: NextRequest, 
+  { params }: { params: Params }
+) {
   try {
     const { id } = params;
     const log = getExecutionLog(id);

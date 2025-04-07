@@ -4,13 +4,7 @@ import { executeWorkflow } from '@/lib/workflowExecutor';
 import { Edge } from '@xyflow/react';
 import { Node } from '@/types';
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
-export async function POST(request: NextRequest, { params }: Params) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const { id } = params;
     const workflow = getWorkflowById(id);
