@@ -445,8 +445,8 @@
     "updatedAt": "2025-04-07T06:40:56.656Z"
   },
   {
-    "name": "MyWorkFlow",
-    "description": "aaa",
+    "name": "dsgvdssdvs",
+    "description": "",
     "nodes": [
       {
         "id": "start",
@@ -455,8 +455,8 @@
           "label": "Start"
         },
         "position": {
-          "x": 137.5,
-          "y": -35.5
+          "x": 127,
+          "y": -25
         },
         "style": {
           "background": "#f97316",
@@ -468,7 +468,7 @@
           "width": 150,
           "height": 40
         },
-        "selected": false,
+        "selected": true,
         "dragging": false
       },
       {
@@ -477,7 +477,7 @@
         "data": {
           "label": "Api",
           "apiRoute": {
-            "url": "https://jsonplaceholder.typicode.com/users/3",
+            "url": "",
             "method": "GET",
             "headers": {},
             "body": {},
@@ -485,8 +485,8 @@
           }
         },
         "position": {
-          "x": 334.20511618226783,
-          "y": 64.12706667518444
+          "x": 118.81533091972571,
+          "y": 125.32533134466624
         },
         "style": {
           "background": "#3b82f6",
@@ -497,46 +497,12 @@
         "measured": {
           "width": 150,
           "height": 40
-        },
-        "selected": false,
-        "dragging": false
-      },
-      {
-        "id": "node_3",
-        "type": "output",
-        "data": {
-          "label": "Output"
-        },
-        "position": {
-          "x": 365.18698161217236,
-          "y": 128.43948782884902
-        },
-        "style": {
-          "background": "#8b5cf6",
-          "color": "white",
-          "border": "1px solid rgba(0,0,0,0.1)",
-          "width": 150
-        },
-        "measured": {
-          "width": 150,
-          "height": 40
         }
       }
     ],
-    "edges": [
-      {
-        "source": "start",
-        "target": "node_2",
-        "id": "xy-edge__start-node_2"
-      },
-      {
-        "source": "node_2",
-        "target": "node_3",
-        "id": "xy-edge__node_2-node_3"
-      }
-    ],
-    "id": "ff91a477-eb15-4211-9e58-18cfced7a575",
-    "createdAt": "2025-04-07T23:36:22.821Z",
-    "updatedAt": "2025-04-07T23:36:22.821Z"
+    "edges": [],
+    "id": "8e55622c-15cf-40ba-9e11-6639f5af813f",
+    "createdAt": "2025-04-07T23:40:25.190Z",
+    "updatedAt": "2025-04-07T23:40:25.190Z"
   }
 ]
