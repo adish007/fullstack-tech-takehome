@@ -194,7 +194,13 @@ export default function WorkflowDetail() {
                   </div>
                   {result.success ? (
                     <div className="bg-zinc-800 p-3 rounded overflow-x-auto">
-                      <pre className="text-sm">{JSON.stringify(result.data, null, 2)}</pre>
+                      {typeof result.data === 'string' ? (
+                        // For string data (like from Transform nodes), preserve newlines
+                        <pre className="text-sm whitespace-pre-wrap">{result.data}</pre>
+                      ) : (
+                        // For object data, use JSON.stringify
+                        <pre className="text-sm">{JSON.stringify(result.data, null, 2)}</pre>
+                      )}
                     </div>
                   ) : (
                     <p className="text-red-300">{result.error}</p>
