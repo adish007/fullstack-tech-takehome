@@ -4,6 +4,7 @@
  * and performing API requests as defined in each node.
  */
 import { Edge } from '@xyflow/react';
+import { cleanDataWithOpenAI } from './openai';
 
 // Define our own Node interface to match the structure in workflowDatabase.ts
 interface Node {
@@ -139,8 +140,34 @@ export const executeNodeRequest = async (node: Node): Promise<any> => {
     }
     
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error executing node ${node.id}:`, error);
+    return { error: error.message || 'Unknown error executing API request' };
+  }
+};
+
+/**
+ * Processes a Transform node by cleaning data with OpenAI
+ */
+export const executeTransformNode = async (node: Node, previousResults: any): Promise<any> => {
+  try {
+    // If there are no previous results, return a default message
+    if (!previousResults) {
+      return "No previous data to transform";
+    }
+
+    // Use OpenAI to clean the data and return the direct response
+    const cleanedData = await cleanDataWithOpenAI(previousResults);
+    
+    // If there was an error, throw it to be caught by the catch block
+    if (typeof cleanedData === 'object' && 'error' in cleanedData) {
+      throw new Error(cleanedData.error);
+    }
+    
+    // Return the string directly
+    return cleanedData;
+  } catch (error: any) {
+    console.error(`Error executing transform node ${node.id}:`, error);
     throw error;
   }
 };
@@ -205,6 +232,10 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
   // Track visited nodes to avoid cycles
   const visited = new Set<string>();
   
+  // Store results for each node to pass to next nodes
+  const nodeResults = new Map<string, any>();
+  nodeResults.set(startNode.id, { message: 'Workflow execution started' });
+  
   while (queue.length > 0) {
     const { nodeId, previousResults } = queue.shift()!;
     
@@ -220,21 +251,50 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
         // Skip start nodes in the execution chain
         if (node.type === 'start') continue;
         
-        // Execute the node's request
-        const data = await executeNodeRequest(node);
+        let data;
+        let success = true;
+        
+        // Handle different node types
+        if (node.type === 'output' || node.data.label === 'Output') {
+          // For output nodes, just pass through the previous results
+          data = previousResults || { message: 'No data received from previous nodes' };
+        } else if (node.data.label === 'Transform') {
+          try {
+            // For transform nodes, use OpenAI to clean the data
+            data = await executeTransformNode(node, previousResults);
+            success = true;
+          } catch (error: any) {
+            success = false;
+            data = error.message || 'Error transforming data';
+          }
+        } else {
+          // For API nodes, execute the API request
+          data = await executeNodeRequest(node);
+          // Check if there was an error
+          if (data && data.error) {
+            success = false;
+          }
+        }
+        
+        // Store the result for this node
+        nodeResults.set(node.id, data);
         
         allResults.push({
           nodeId: node.id,
-          success: true,
-          data,
+          success: success,
+          data: data,
+          error: data && data.error ? data.error : undefined,
           timestamp: new Date().toISOString()
         });
         
-        // Add next nodes to the queue
-        queue.push({ 
-          nodeId: node.id, 
-          previousResults: data 
-        });
+        // Only continue to next nodes if this node was successful
+        if (success) {
+          // Add next nodes to the queue
+          queue.push({ 
+            nodeId: node.id, 
+            previousResults: data 
+          });
+        }
       } catch (error: any) {
         allResults.push({
           nodeId: node.id,
@@ -244,7 +304,6 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
         });
         
         // Don't continue from failed nodes
-        // But we could add error handling logic here if needed
       }
     }
   }
