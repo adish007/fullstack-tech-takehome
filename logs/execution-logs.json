@@ -1,0 +1,102 @@
+[
+  {
+    "id": "43155daa-4fb8-4498-8093-55a04e566a59",
+    "workflowId": "c7b2b95b-f275-45da-983c-75ca960f7a0c",
+    "workflowName": "Doesn't Work",
+    "timestamp": "2025-04-07T04:37:24.476Z",
+    "status": "failure",
+    "executionTime": 219,
+    "error": "One or more nodes failed during execution",
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T04:37:24.257Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": false,
+        "timestamp": "2025-04-07T04:37:24.476Z",
+        "error": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+      }
+    ]
+  },
+  {
+    "id": "b7f2be81-7032-4825-b769-3275b86ef4af",
+    "workflowId": "0cb60a83-5917-42de-8820-2e8149301d05",
+    "workflowName": "ZZZZZ",
+    "timestamp": "2025-04-07T04:36:37.303Z",
+    "status": "success",
+    "executionTime": 0,
+    "nodeResults": []
+  },
+  {
+    "id": "9a7c9406-4594-42ab-9b02-07a54927519f",
+    "workflowId": "2f0df6e6-7ff6-465e-b456-e215fb465aeb",
+    "workflowName": "RealWorkFlow",
+    "timestamp": "2025-04-07T04:36:10.619Z",
+    "status": "success",
+    "executionTime": 425,
+    "nodeResults": []
+  },
+  {
+    "id": "ad9b5f0e-fa3e-450a-97f9-c54ca7380a92",
+    "workflowId": "6cb760b8-63d2-404b-9c4f-c7b32f3aae8e",
+    "workflowName": "Charlie Is Awesome",
+    "timestamp": "2025-04-07T04:35:29.041Z",
+    "status": "success",
+    "executionTime": 1953,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:27.088Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:27.205Z"
+      },
+      {
+        "nodeId": "node_1743997681368",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:29.041Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:29.041Z"
+      }
+    ]
+  },
+  {
+    "id": "1252da97-b857-4031-8431-298291b0d74a",
+    "workflowId": "6cb760b8-63d2-404b-9c4f-c7b32f3aae8e",
+    "workflowName": "Charlie Is Awesome",
+    "timestamp": "2025-04-07T04:35:23.648Z",
+    "status": "success",
+    "executionTime": 7161,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:16.487Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:16.707Z"
+      },
+      {
+        "nodeId": "node_1743997681368",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:23.647Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T04:35:23.647Z"
+      }
+    ]
+  }
+]

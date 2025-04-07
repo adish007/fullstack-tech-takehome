@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, KeyboardEvent } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
@@ -15,7 +15,8 @@ import {
   Connection,
   Edge,
   Node,
-  NodeMouseHandler
+  NodeMouseHandler,
+  ReactFlowProvider
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import OnboardingGuide from '@/components/OnboardingGuide';
@@ -61,6 +62,7 @@ export default function EditWorkflow() {
   const [error, setError] = useState('');
   const [selectedNode, setSelectedNode] = useState<Node<NodeData> | null>(null);
   const [showNodeConfig, setShowNodeConfig] = useState(false);
+  const [selectedElements, setSelectedElements] = useState<{ nodes: string[], edges: string[] }>({ nodes: [], edges: [] });
 
   useEffect(() => {
     const fetchWorkflow = async () => {
@@ -181,9 +183,76 @@ export default function EditWorkflow() {
   };
 
   const onNodeClick: NodeMouseHandler = (event, node) => {
+    // Update selected node for configuration
     setSelectedNode(node as Node<NodeData>);
+    
+    // If it's an API node, show the configuration modal
     if (node.type !== 'output' && node.data.label === 'Api') {
       setShowNodeConfig(true);
+    }
+    
+    // Track selected nodes for deletion
+    if (event.ctrlKey || event.metaKey) {
+      // Multi-select with Ctrl/Cmd key
+      setSelectedElements(prev => ({
+        ...prev,
+        nodes: prev.nodes.includes(node.id) 
+          ? prev.nodes.filter(id => id !== node.id) 
+          : [...prev.nodes, node.id]
+      }));
+    } else {
+      // Single select (clear previous selection)
+      setSelectedElements({
+        nodes: [node.id],
+        edges: []
+      });
+    }
+  };
+
+  const onEdgeClick = (event: React.MouseEvent, edge: Edge) => {
+    if (event.ctrlKey || event.metaKey) {
+      // Multi-select with Ctrl/Cmd key
+      setSelectedElements(prev => ({
+        ...prev,
+        edges: prev.edges.includes(edge.id as string) 
+          ? prev.edges.filter(id => id !== edge.id) 
+          : [...prev.edges, edge.id as string]
+      }));
+    } else {
+      // Single select (clear previous selection)
+      setSelectedElements({
+        nodes: [],
+        edges: [edge.id as string]
+      });
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    // Delete selected nodes
+    if (selectedElements.nodes.length > 0) {
+      setNodes(nodes => nodes.filter(node => !selectedElements.nodes.includes(node.id)));
+      
+      // Also delete any edges connected to deleted nodes
+      setEdges(edges => edges.filter(edge => 
+        !selectedElements.nodes.includes(edge.source) && 
+        !selectedElements.nodes.includes(edge.target)
+      ));
+    }
+    
+    // Delete selected edges
+    if (selectedElements.edges.length > 0) {
+      setEdges(edges => edges.filter(edge => !selectedElements.edges.includes(edge.id as string)));
+    }
+    
+    // Clear selection
+    setSelectedElements({ nodes: [], edges: [] });
+  };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Delete selected elements when Delete or Backspace key is pressed
+    if ((event.key === 'Delete' || event.key === 'Backspace') && 
+        (selectedElements.nodes.length > 0 || selectedElements.edges.length > 0)) {
+      handleDeleteSelected();
     }
   };
 
@@ -246,239 +315,237 @@ export default function EditWorkflow() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-white">
-      {/* Include the onboarding guide component */}
-      <OnboardingGuide />
-      
-      <div className="container mx-auto px-6 py-12">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Edit Workflow</h1>
-            <p className="text-zinc-400 mt-1">Modify your workflow design</p>
-          </div>
-          <div className="flex space-x-3">
-            <Link 
-              href={`/workflows/${id}`} 
-              className="border border-zinc-700 hover:border-orange-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Cancel
-            </Link>
-          </div>
-        </div>
-
-        {error && (
-          <div className="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit}>
-          <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 mb-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="name" className="block mb-2 text-sm font-medium">
-                  Workflow Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="name"
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
-                  placeholder="Enter workflow name"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="description" className="block mb-2 text-sm font-medium">
-                  Description
-                </label>
-                <input
-                  id="description"
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
-                  placeholder="Enter workflow description (optional)"
-                />
-              </div>
+    <ReactFlowProvider>
+      <main className="min-h-screen bg-zinc-950 text-white" onKeyDown={handleKeyDown} tabIndex={0}>
+        {/* Include the onboarding guide component */}
+        <OnboardingGuide />
+        
+        <div className="container mx-auto px-6 py-12">
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold">Edit Workflow</h1>
+              <p className="text-zinc-400 mt-1">Modify your workflow design</p>
             </div>
-          </div>
-
-          <div className="bg-zinc-900 rounded-lg border border-zinc-800 mb-6 overflow-hidden">
-            <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
-              <h2 className="font-bold">Workflow Builder</h2>
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => handleAddNode('api')}
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                >
-                  Add API Node
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAddNode('transform')}
-                  className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                >
-                  Add Transform
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAddNode('output')}
-                  className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors"
-                >
-                  Add Output
-                </button>
-              </div>
-            </div>
-            <div style={{ height: '500px' }}>
-              <ReactFlow
-                nodes={nodes}
-                edges={edges}
-                onNodesChange={onNodesChange}
-                onEdgesChange={onEdgesChange}
-                onConnect={onConnect}
-                onNodeClick={onNodeClick}
-                fitView
-              >
-                <Background />
-                <Controls />
-                <MiniMap />
-                <Panel position="bottom-right">
-                  <div className="bg-zinc-800 p-2 rounded text-xs text-zinc-400">
-                    Drag to connect nodes
-                  </div>
-                </Panel>
-              </ReactFlow>
-            </div>
-          </div>
-
-          <div className="flex justify-between">
-            <button
-              type="button"
-              onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            >
-              Delete Workflow
-            </button>
-            
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className={`bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors ${
-                isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
-              }`}
-            >
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      {/* Node Configuration Modal */}
-      {showNodeConfig && selectedNode && (selectedNode.data as NodeData).apiRoute && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-zinc-800 rounded-lg p-6 w-full max-w-md">
-            <h3 className="text-xl font-bold mb-4">Configure API Node</h3>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block mb-1 text-sm font-medium">API Provider</label>
-                <select
-                  value={(selectedNode.data as NodeData).apiRoute?.provider || 'custom'}
-                  onChange={(e) => handleApiRouteChange('provider', e.target.value)}
-                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-                >
-                  <option value="custom">Custom API</option>
-                  <option value="stripe">Stripe API</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block mb-1 text-sm font-medium">API URL</label>
-                <input
-                  type="text"
-                  value={(selectedNode.data as NodeData).apiRoute?.url || ''}
-                  onChange={(e) => handleApiRouteChange('url', e.target.value)}
-                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-                  placeholder={(selectedNode.data as NodeData).apiRoute?.provider === 'stripe' 
-                    ? "https://api.stripe.com/v1/customers" 
-                    : "https://api.example.com/endpoint"}
-                />
-              </div>
-              
-              <div>
-                <label className="block mb-1 text-sm font-medium">Method</label>
-                <select
-                  value={(selectedNode.data as NodeData).apiRoute?.method || 'GET'}
-                  onChange={(e) => handleApiRouteChange('method', e.target.value)}
-                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
-                >
-                  <option value="GET">GET</option>
-                  <option value="POST">POST</option>
-                  <option value="PUT">PUT</option>
-                  <option value="DELETE">DELETE</option>
-                  <option value="PATCH">PATCH</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block mb-1 text-sm font-medium">Headers (JSON)</label>
-                <textarea
-                  value={JSON.stringify((selectedNode.data as NodeData).apiRoute?.headers || {}, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const headers = JSON.parse(e.target.value);
-                      handleApiRouteChange('headers', headers);
-                    } catch (err) {
-                      // Allow invalid JSON during editing
-                    }
-                  }}
-                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500 font-mono text-sm"
-                  rows={4}
-                  placeholder='{ "Content-Type": "application/json" }'
-                />
-              </div>
-              
-              <div>
-                <label className="block mb-1 text-sm font-medium">Body (JSON)</label>
-                <textarea
-                  value={JSON.stringify((selectedNode.data as NodeData).apiRoute?.body || {}, null, 2)}
-                  onChange={(e) => {
-                    try {
-                      const body = JSON.parse(e.target.value);
-                      handleApiRouteChange('body', body);
-                    } catch (err) {
-                      // Allow invalid JSON during editing
-                    }
-                  }}
-                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500 font-mono text-sm"
-                  rows={4}
-                  placeholder='{ "key": "value" }'
-                />
-              </div>
-            </div>
-            
-            <div className="flex justify-end space-x-3 mt-6">
-              <button
-                type="button"
-                onClick={() => setShowNodeConfig(false)}
-                className="px-4 py-2 border border-zinc-600 rounded-lg hover:bg-zinc-700 transition-colors"
+            <div className="flex space-x-3">
+              <Link 
+                href={`/workflows/${id}`} 
+                className="border border-zinc-700 hover:border-orange-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
                 Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleUpdateNodeConfig}
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
-              >
-                Save Configuration
-              </button>
+              </Link>
             </div>
           </div>
+
+          {error && (
+            <div className="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg mb-6">
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit}>
+            <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label htmlFor="name" className="block mb-2 text-sm font-medium">
+                    Workflow Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+                    placeholder="Enter workflow name"
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="description" className="block mb-2 text-sm font-medium">
+                    Description
+                  </label>
+                  <input
+                    id="description"
+                    type="text"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 focus:outline-none focus:border-orange-500"
+                    placeholder="Enter workflow description (optional)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-zinc-900 rounded-lg border border-zinc-800 mb-6 overflow-hidden">
+              <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
+                <div className="flex items-center space-x-4">
+                  <h2 className="font-bold">Workflow Builder</h2>
+                  {(selectedElements.nodes.length > 0 || selectedElements.edges.length > 0) && (
+                    <button
+                      type="button"
+                      onClick={handleDeleteSelected}
+                      className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition-colors"
+                    >
+                      Delete Selected ({selectedElements.nodes.length + selectedElements.edges.length})
+                    </button>
+                  )}
+                </div>
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAddNode('api')}
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                  >
+                    Add API Node
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddNode('transform')}
+                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                  >
+                    Add Transform
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAddNode('output')}
+                    className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors"
+                  >
+                    Add Output
+                  </button>
+                </div>
+              </div>
+              <div style={{ height: '500px' }}>
+                <ReactFlow
+                  nodes={nodes.map(node => ({
+                    ...node,
+                    // Highlight selected nodes
+                    style: {
+                      ...node.style,
+                      boxShadow: selectedElements.nodes.includes(node.id) 
+                        ? '0 0 0 2px #ffffff' 
+                        : undefined
+                    }
+                  }))}
+                  edges={edges.map(edge => ({
+                    ...edge,
+                    // Highlight selected edges
+                    style: {
+                      stroke: selectedElements.edges.includes(edge.id as string) 
+                        ? '#ffffff' 
+                        : undefined,
+                      strokeWidth: selectedElements.edges.includes(edge.id as string) 
+                        ? 3 
+                        : undefined
+                    }
+                  }))}
+                  onNodesChange={onNodesChange}
+                  onEdgesChange={onEdgesChange}
+                  onConnect={onConnect}
+                  onNodeClick={onNodeClick}
+                  onEdgeClick={onEdgeClick}
+                  fitView
+                >
+                  <Background />
+                  <Controls />
+                  <MiniMap />
+                  <Panel position="bottom-right">
+                    <div className="bg-zinc-800 p-2 rounded text-xs text-zinc-400">
+                      Click to select, Delete key to remove
+                    </div>
+                  </Panel>
+                </ReactFlow>
+              </div>
+            </div>
+
+            <div className="flex justify-between">
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+              >
+                Delete Workflow
+              </button>
+              
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors ${
+                  isSubmitting ? 'opacity-70 cursor-not-allowed' : ''
+                }`}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </form>
         </div>
-      )}
-    </main>
+
+        {/* Node Configuration Modal */}
+        {showNodeConfig && selectedNode && (selectedNode.data as NodeData).apiRoute && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-zinc-800 rounded-lg p-6 w-full max-w-md">
+              <h3 className="text-xl font-bold mb-4">Configure API Node</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block mb-1 text-sm font-medium">API Provider</label>
+                  <select
+                    value={(selectedNode.data as NodeData).apiRoute?.provider || 'custom'}
+                    onChange={(e) => handleApiRouteChange('provider', e.target.value)}
+                    className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="custom">Custom API</option>
+                    <option value="stripe">Stripe API</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label className="block mb-1 text-sm font-medium">API URL</label>
+                  <input
+                    type="text"
+                    value={(selectedNode.data as NodeData).apiRoute?.url || ''}
+                    onChange={(e) => handleApiRouteChange('url', e.target.value)}
+                    className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
+                    placeholder={(selectedNode.data as NodeData).apiRoute?.provider === 'stripe' 
+                      ? "https://api.stripe.com/v1/customers" 
+                      : "https://api.example.com/endpoint"}
+                  />
+                </div>
+                
+                <div>
+                  <label className="block mb-1 text-sm font-medium">Method</label>
+                  <select
+                    value={(selectedNode.data as NodeData).apiRoute?.method || 'GET'}
+                    onChange={(e) => handleApiRouteChange('method', e.target.value)}
+                    className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
+                  >
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-3 mt-6">
+                <button
+                  type="button"
+                  onClick={() => setShowNodeConfig(false)}
+                  className="px-4 py-2 border border-zinc-600 rounded-lg hover:bg-zinc-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUpdateNodeConfig}
+                  className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+                >
+                  Save Configuration
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </ReactFlowProvider>
   );
 }

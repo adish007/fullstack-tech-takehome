@@ -5,6 +5,8 @@
  */
 import { Edge } from '@xyflow/react';
 import { cleanDataWithOpenAI } from './openai';
+import { logExecution } from './executionLogger';
+import { v4 as uuidv4 } from 'uuid';
 
 // Define our own Node interface to match the structure in workflowDatabase.ts
 interface Node {
@@ -203,9 +205,11 @@ export const isConnectedToOutput = (
 /**
  * Executes a workflow by starting at the start node and following connections
  */
-export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<ExecutionResult[]> => {
+export const executeWorkflow = async (nodes: Node[], edges: Edge[], workflowId?: string, workflowName?: string): Promise<ExecutionResult[]> => {
   const allResults: ExecutionResult[] = [];
   const startNode = findStartNode(nodes, edges);
+  const executionStartTime = Date.now();
+  const executionId = uuidv4();
   
   if (!startNode) {
     throw new Error('No start node found in the workflow');
@@ -309,6 +313,7 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
   }
   
   // If there are output nodes, filter results to only include nodes that lead to an output node
+  let finalResults: ExecutionResult[] = [];
   if (hasOutput) {
     // Create a set of node IDs that are connected to output nodes
     const nodesConnectedToOutput = new Set<string>();
@@ -324,9 +329,41 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[]): Promise<Exe
     });
     
     // Filter results to only include nodes that are connected to output
-    return allResults.filter(result => nodesConnectedToOutput.has(result.nodeId));
+    finalResults = allResults.filter(result => nodesConnectedToOutput.has(result.nodeId));
+  } else {
+    finalResults = hasOutput ? allResults : [];
   }
   
-  // If no output nodes, return an empty array (no results shown)
-  return hasOutput ? allResults : [];
+  // Calculate execution time
+  const executionEndTime = Date.now();
+  const executionTime = executionEndTime - executionStartTime;
+  
+  // Determine overall execution status
+  const hasFailures = finalResults.some(result => !result.success);
+  const executionStatus = hasFailures ? 'failure' : 'success';
+  
+  // Log the execution
+  if (workflowId) {
+    try {
+      await logExecution({
+        id: executionId,
+        workflowId,
+        workflowName: workflowName || 'Unnamed Workflow',
+        timestamp: new Date().toISOString(),
+        status: executionStatus,
+        executionTime,
+        error: hasFailures ? 'One or more nodes failed during execution' : undefined,
+        nodeResults: finalResults.map(result => ({
+          nodeId: result.nodeId,
+          success: result.success,
+          timestamp: result.timestamp,
+          error: result.error
+        }))
+      });
+    } catch (error) {
+      console.error('Failed to log execution:', error);
+    }
+  }
+  
+  return finalResults;
 };
