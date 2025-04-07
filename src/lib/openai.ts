@@ -10,11 +10,8 @@
  */
 export const cleanDataWithOpenAI = async (data: any): Promise<string | { error: string }> => {
   try {
-    // Use typeof window to check if we're on the client side
-    // This helps prevent SSR issues with environment variables
-    const apiKey = typeof window !== 'undefined' 
-      ? process.env.NEXT_PUBLIC_OPEN_AI_KEY 
-      : process.env.NEXT_PUBLIC_OPEN_AI_KEY;
+    // Simplified environment variable access
+    const apiKey = process.env.NEXT_PUBLIC_OPEN_AI_KEY;
     
     if (!apiKey) {
       throw new Error('OpenAI API key is not configured');

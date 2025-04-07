@@ -6,6 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { Workflow } from '@/types';
 
 // Define the data directory
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -20,53 +21,6 @@ if (!fs.existsSync(DATA_DIR)) {
 if (!fs.existsSync(WORKFLOWS_FILE)) {
   fs.writeFileSync(WORKFLOWS_FILE, JSON.stringify([], null, 2));
 }
-
-
-
-export interface Node {
-  id: string;
-  type: string;
-  data: {
-    label: string;
-    apiRoute?: {
-      url: string;
-      method: string;
-      headers?: Record<string, string>;
-      body?: any;
-      apiKey?: string; // For Stripe API key reference (store securely)
-    };
-  };
-  position: {
-    x: number;
-    y: number;
-  };
-  style?: any;
-  measured?: any;
-  selected?: boolean;
-  dragging?: boolean;
-}
-
-export interface Edge {
-  source: string;
-  target: string;
-  id: string;
-}
-
-
-
-// Define workflow type
-export interface Workflow {
-  id: string;
-  name: string;
-  description: string;
-  createdAt: string;
-  updatedAt: string;
-  nodes: any[];
-  edges: any[];
-}
-
-
-
 
 // CRUD operations for workflows
 export const getWorkflows = (): Workflow[] => {

@@ -105,8 +105,8 @@ export default function WorkflowDetail() {
   const createdDate = new Date(workflow.createdAt).toLocaleString();
   const updatedDate = new Date(workflow.updatedAt).toLocaleString();
   
-  // Find all output nodes in the workflow
-  const outputNodes = findOutputNodes(workflow.nodes as any[]);
+  // // Find all output nodes in the workflow
+  // const outputNodes = findOutputNodes(workflow.nodes as any[]);
 
   return (
     <main className="min-h-screen bg-zinc-950 text-white">

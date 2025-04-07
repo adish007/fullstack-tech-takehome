@@ -1,72 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-interface NodeResult {
-  nodeId: string;
-  success: boolean;
-  timestamp: string;
-  error?: string;
-}
-
-interface ExecutionLogEntry {
-  id: string;
-  workflowId: string;
-  workflowName: string;
-  timestamp: string;
-  status: 'success' | 'failure';
-  error?: string;
-  executionTime: number;
-  nodeResults?: NodeResult[];
-}
+import { useParams } from 'next/navigation';
+import { useExecutionLog } from '@/hooks/useExecutionLogs';
+import { formatDateTime, formatTime, formatDuration } from '@/lib/utils';
+import StatusBadge from '@/components/ui/StatusBadge';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
 
 export default function ExecutionLogDetail() {
   const { id } = useParams();
-  const router = useRouter();
-  const [log, setLog] = useState<ExecutionLogEntry | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const fetchLog = async () => {
-      try {
-        setIsLoading(true);
-        
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/execution-logs/${id}`, {
-          cache: 'no-store',
-        });
-
-        if (!res.ok) {
-          throw new Error('Execution log not found');
-        }
-
-        const data = await res.json();
-        setLog(data);
-      } catch (err: any) {
-        setError(err.message || 'An unexpected error occurred.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchLog();
-  }, [id]);
-
-  const formatDuration = (ms: number) => {
-    if (ms < 1000) return `${ms}ms`;
-    const seconds = Math.floor(ms / 1000);
-    if (seconds < 60) return `${seconds}s`;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
-  };
+  const { log, isLoading, error } = useExecutionLog(id as string);
 
   if (isLoading) {
     return (
       <main className="min-h-screen bg-zinc-950 text-white flex items-center justify-center">
-        <p className="text-zinc-400">Loading execution log...</p>
+        <LoadingSpinner text="Loading execution log..." />
       </main>
     );
   }
@@ -117,17 +66,11 @@ export default function ExecutionLogDetail() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800">
             <h3 className="text-sm font-medium text-zinc-400 mb-1">Execution Time</h3>
-            <p>{new Date(log.timestamp).toLocaleString()}</p>
+            <p>{formatDateTime(log.timestamp)}</p>
           </div>
           <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800">
             <h3 className="text-sm font-medium text-zinc-400 mb-1">Status</h3>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-              log.status === 'success' 
-                ? 'bg-green-900/30 text-green-300' 
-                : 'bg-red-900/30 text-red-300'
-            }`}>
-              {log.status === 'success' ? 'Success' : 'Failed'}
-            </span>
+            <StatusBadge status={log.status} />
           </div>
           <div className="bg-zinc-900 p-6 rounded-lg border border-zinc-800">
             <h3 className="text-sm font-medium text-zinc-400 mb-1">Duration</h3>
@@ -140,10 +83,7 @@ export default function ExecutionLogDetail() {
         </div>
 
         {log.error && (
-          <div className="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg mb-6">
-            <h3 className="font-bold mb-2">Execution Error</h3>
-            <p>{log.error}</p>
-          </div>
+          <ErrorDisplay message={log.error} className="mb-6" />
         )}
 
         {log.nodeResults && log.nodeResults.length > 0 && (
@@ -165,19 +105,15 @@ export default function ExecutionLogDetail() {
                   {log.nodeResults.map((node, index) => (
                     <tr key={index} className="border-t border-zinc-800 hover:bg-zinc-800/50">
                       <td className="px-4 py-3">
-                        {new Date(node.timestamp).toLocaleTimeString()}
+                        {formatTime(node.timestamp)}
                       </td>
                       <td className="px-4 py-3 font-mono text-sm">
                         {node.nodeId}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          node.success 
-                            ? 'bg-green-900/30 text-green-300' 
-                            : 'bg-red-900/30 text-red-300'
-                        }`}>
-                          {node.success ? 'Success' : 'Failed'}
-                        </span>
+                        <StatusBadge 
+                          status={node.success ? 'success' : 'failure'} 
+                        />
                       </td>
                       <td className="px-4 py-3">
                         {node.error && (

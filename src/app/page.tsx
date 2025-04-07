@@ -1,60 +1,21 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Workflow } from '@/lib/workflowDatabase';
+import { useWorkflows } from '@/hooks/useWorkflows';
+import { formatDate } from '@/lib/utils';
+import { Workflow } from '@/types';
 import OnboardingButton from '@/components/OnboardingButton';
 import OnboardingGuide from '@/components/OnboardingGuide';
-
-async function getWorkflows(): Promise<Workflow[]> {
-  // In Next.js server components, we need to use an absolute URL
-  // Using the URL constructor to ensure a valid URL
-  const baseUrl = process.env.VERCEL_URL 
-    ? `https://${process.env.VERCEL_URL}` 
-    : 'http://localhost:3000';
-  
-  const res = await fetch(`${baseUrl}/api/workflows`, {
-    cache: 'no-store',
-  });
-  
-  if (!res.ok) {
-    throw new Error('Failed to fetch workflows');
-  }
-  
-  return res.json();
-}
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import ErrorDisplay from '@/components/ui/ErrorDisplay';
+import { useRouter } from 'next/navigation';
+import { fetchApiPost } from '@/lib/apiUtils';
 
 export default function Dashboard() {
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const { workflows, isLoading, error, refreshWorkflows } = useWorkflows();
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  useEffect(() => {
-    const fetchWorkflows = async () => {
-      try {
-        setIsLoading(true);
-        const res = await fetch('/api/workflows', {
-          cache: 'no-store',
-        });
-        
-        if (!res.ok) {
-          throw new Error('Failed to fetch workflows');
-        }
-        
-        const data = await res.json();
-        setWorkflows(data);
-      } catch (err) {
-        setError('Failed to load workflows');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchWorkflows();
-  }, []);
   
   // Filter workflows based on search term
   const filteredWorkflows = workflows.filter(workflow => 
@@ -134,21 +95,16 @@ export default function Dashboard() {
         {/* Loading and error states */}
         {isLoading && (
           <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-orange-500 mx-auto mb-4"></div>
-            <p>Loading workflows...</p>
+            <LoadingSpinner size="lg" text="Loading workflows..." />
           </div>
         )}
         
         {error && (
-          <div className="bg-red-900/30 border border-red-800 p-4 rounded-lg mb-8 text-center">
-            <p className="text-red-300">{error}</p>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="mt-2 text-white bg-red-700 hover:bg-red-800 px-4 py-2 rounded-lg"
-            >
-              Retry
-            </button>
-          </div>
+          <ErrorDisplay 
+            message={error} 
+            onRetry={refreshWorkflows}
+            className="mb-8"
+          />
         )}
         
         {/* Workflows list */}
@@ -189,8 +145,30 @@ interface WorkflowCardProps {
 }
 
 function WorkflowCard({ workflow }: WorkflowCardProps) {
-  const createdDate = new Date(workflow.createdAt).toLocaleDateString();
-  const updatedDate = new Date(workflow.updatedAt).toLocaleDateString();
+  const router = useRouter();
+  const createdDate = formatDate(workflow.createdAt);
+  const updatedDate = formatDate(workflow.updatedAt);
+  const [isExecuting, setIsExecuting] = useState(false);
+  
+  const handleExecute = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    
+    try {
+      setIsExecuting(true);
+      
+      // Execute the workflow using the API
+      const response = await fetchApiPost(`/api/workflows/${workflow.id}/execute`, {});
+      
+      // Navigate to the execution logs filtered by this workflow
+      router.push(`/execution-logs?workflowId=${workflow.id}`);
+    } catch (error) {
+      console.error('Error executing workflow:', error);
+      // If execution fails, navigate to the workflow detail page
+      router.push(`/workflows/${workflow.id}`);
+    } finally {
+      setIsExecuting(false);
+    }
+  };
   
   return (
     <div className="bg-zinc-900 rounded-lg border border-zinc-800 overflow-hidden hover:border-orange-500 transition-colors">
@@ -201,20 +179,34 @@ function WorkflowCard({ workflow }: WorkflowCardProps) {
           <div>Created: {createdDate}</div>
           <div>Updated: {updatedDate}</div>
         </div>
-      </div>
-      <div className="bg-zinc-800 p-4 flex justify-between">
-        <Link
-          href={`/workflows/${workflow.id}`}
-          className="text-orange-500 hover:text-orange-400 transition-colors"
-        >
-          View Details
-        </Link>
-        <Link
-          href={`/workflows/${workflow.id}/edit`}
-          className="text-orange-500 hover:text-orange-400 transition-colors"
-        >
-          Edit
-        </Link>
+        <div className="flex gap-2 mt-4 pt-4 border-t border-zinc-800">
+          <Link 
+            href={`/workflows/${workflow.id}`}
+            className="text-white bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded text-sm flex-1 text-center"
+          >
+            View
+          </Link>
+          <Link
+            href={`/workflows/${workflow.id}/edit`}
+            className="text-white bg-zinc-800 hover:bg-zinc-700 px-3 py-1.5 rounded text-sm flex-1 text-center"
+          >
+            Edit
+          </Link>
+          <button
+            onClick={handleExecute}
+            disabled={isExecuting}
+            className={`text-white bg-orange-500 hover:bg-orange-600 px-3 py-1.5 rounded text-sm flex-1 text-center ${
+              isExecuting ? 'opacity-75 cursor-not-allowed' : ''
+            }`}
+          >
+            {isExecuting ? (
+              <span className="flex items-center justify-center">
+                <span className="animate-spin h-3 w-3 border-t-2 border-white rounded-full mr-2"></span>
+                Running...
+              </span>
+            ) : 'Execute'}
+          </button>
+        </div>
       </div>
     </div>
   );

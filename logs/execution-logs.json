@@ -1,5 +1,217 @@
 [
   {
+    "id": "27d025d1-cf56-422f-bb38-ca55a6c5ade0",
+    "workflowId": "84d7d961-fd35-4c8f-8130-0f34692ac2d6",
+    "workflowName": "Works",
+    "timestamp": "2025-04-07T05:15:34.795Z",
+    "status": "success",
+    "executionTime": 65,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:15:34.730Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:15:34.794Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:15:34.794Z"
+      }
+    ]
+  },
+  {
+    "id": "069bd2c2-8d0d-4ed7-b353-0abc7e7fd6e3",
+    "workflowId": "84d7d961-fd35-4c8f-8130-0f34692ac2d6",
+    "workflowName": "Works",
+    "timestamp": "2025-04-07T05:15:29.496Z",
+    "status": "success",
+    "executionTime": 112,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:15:29.384Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:15:29.496Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:15:29.496Z"
+      }
+    ]
+  },
+  {
+    "id": "e6abf140-4389-4cb9-96a3-f001431f8116",
+    "workflowId": "04b5da6f-de11-4e8c-bdee-6df70b807fb5",
+    "workflowName": "Does not work",
+    "timestamp": "2025-04-07T05:14:31.382Z",
+    "status": "failure",
+    "executionTime": 56,
+    "error": "One or more nodes failed during execution",
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:14:31.326Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": false,
+        "timestamp": "2025-04-07T05:14:31.382Z",
+        "error": "Failed to fetch"
+      }
+    ]
+  },
+  {
+    "id": "ef4b7802-ca8b-4ff8-a702-c7b61a862396",
+    "workflowId": "592fd12d-bb83-470f-be0e-c7e6a343e1e7",
+    "workflowName": "Test",
+    "timestamp": "2025-04-07T05:09:29.071Z",
+    "status": "success",
+    "executionTime": 2558,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:09:26.513Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:09:26.636Z"
+      },
+      {
+        "nodeId": "node_1744002554705",
+        "success": true,
+        "timestamp": "2025-04-07T05:09:29.071Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:09:29.071Z"
+      }
+    ]
+  },
+  {
+    "id": "ff6d7d1b-094b-4e20-938b-e2557670965f",
+    "workflowId": "592fd12d-bb83-470f-be0e-c7e6a343e1e7",
+    "workflowName": "Test",
+    "timestamp": "2025-04-07T05:09:00.280Z",
+    "status": "success",
+    "executionTime": 111,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:09:00.169Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:09:00.280Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:09:00.280Z"
+      }
+    ]
+  },
+  {
+    "id": "36899a6a-12fc-4f0d-ae3d-ee74ba0189cb",
+    "workflowId": "6cb760b8-63d2-404b-9c4f-c7b32f3aae8e",
+    "workflowName": "Charlie Is Awesome",
+    "timestamp": "2025-04-07T05:07:41.413Z",
+    "status": "success",
+    "executionTime": 1725,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:07:39.688Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:07:39.800Z"
+      },
+      {
+        "nodeId": "node_1743997681368",
+        "success": true,
+        "timestamp": "2025-04-07T05:07:41.413Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:07:41.413Z"
+      }
+    ]
+  },
+  {
+    "id": "5ed356de-9a45-4f78-9c4c-7f69f9cc8dcf",
+    "workflowId": "592fd12d-bb83-470f-be0e-c7e6a343e1e7",
+    "workflowName": "Test",
+    "timestamp": "2025-04-07T05:04:28.719Z",
+    "status": "success",
+    "executionTime": 119,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:04:28.600Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:04:28.719Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:04:28.719Z"
+      }
+    ]
+  },
+  {
+    "id": "bb0f305f-69b2-4828-9ba4-74c256a16842",
+    "workflowId": "6cb760b8-63d2-404b-9c4f-c7b32f3aae8e",
+    "workflowName": "Charlie Is Awesome",
+    "timestamp": "2025-04-07T05:03:14.918Z",
+    "status": "success",
+    "executionTime": 2594,
+    "nodeResults": [
+      {
+        "nodeId": "start",
+        "success": true,
+        "timestamp": "2025-04-07T05:03:12.324Z"
+      },
+      {
+        "nodeId": "node_2",
+        "success": true,
+        "timestamp": "2025-04-07T05:03:12.538Z"
+      },
+      {
+        "nodeId": "node_1743997681368",
+        "success": true,
+        "timestamp": "2025-04-07T05:03:14.918Z"
+      },
+      {
+        "nodeId": "node_3",
+        "success": true,
+        "timestamp": "2025-04-07T05:03:14.918Z"
+      }
+    ]
+  },
+  {
     "id": "43155daa-4fb8-4498-8093-55a04e566a59",
     "workflowId": "c7b2b95b-f275-45da-983c-75ca960f7a0c",
     "workflowName": "Doesn't Work",

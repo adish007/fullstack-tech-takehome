@@ -7,39 +7,7 @@ import { Edge } from '@xyflow/react';
 import { cleanDataWithOpenAI } from './openai';
 import { logExecution } from './executionLogger';
 import { v4 as uuidv4 } from 'uuid';
-
-// Define our own Node interface to match the structure in workflowDatabase.ts
-interface Node {
-  id: string;
-  type: string;
-  data: {
-    label: string;
-    apiRoute?: {
-      url: string;
-      method: string;
-      headers?: Record<string, string>;
-      body?: any;
-      apiKey?: string;
-      provider?: string;
-    };
-  };
-  position: {
-    x: number;
-    y: number;
-  };
-  style?: any;
-  measured?: any;
-  selected?: boolean;
-  dragging?: boolean;
-}
-
-interface ExecutionResult {
-  nodeId: string;
-  success: boolean;
-  data?: any;
-  error?: string;
-  timestamp: string;
-}
+import { Node, ExecutionResult, NodeResult } from '@/types';
 
 /**
  * Finds the start node in the workflow
@@ -125,7 +93,6 @@ export const executeNodeRequest = async (node: Node): Promise<any> => {
     // Handle Stripe API calls
     if (provider === 'stripe') {
       // Get Stripe API key from environment variable
-      // const stripeApiKey = process.env.STRIPE_SECRET_KEY || '';
       const stripeApiKey = process.env.NEXT_PUBLIC_STRIPE_SECRET_KEY || '';
       if (!stripeApiKey) {
         throw new Error('Stripe API key is not configured');
@@ -203,137 +170,145 @@ export const isConnectedToOutput = (
 };
 
 /**
- * Executes a workflow by starting at the start node and following connections
+ * Prepares the workflow execution by identifying the start node and setting up the execution tracker
  */
-export const executeWorkflow = async (nodes: Node[], edges: Edge[], workflowId?: string, workflowName?: string): Promise<ExecutionResult[]> => {
-  const allResults: ExecutionResult[] = [];
+const prepareWorkflowExecution = (
+  nodes: Node[], 
+  edges: Edge[]
+): {
+  startNode: Node;
+  executionId: string;
+  executionStartTime: number;
+  nodeResults: Map<string, any>;
+  allResults: ExecutionResult[];
+} => {
   const startNode = findStartNode(nodes, edges);
-  const executionStartTime = Date.now();
-  const executionId = uuidv4();
   
   if (!startNode) {
     throw new Error('No start node found in the workflow');
   }
   
-  // Check if the workflow has any output nodes
-  const outputNodes = findOutputNodes(nodes);
-  const hasOutput = outputNodes.length > 0;
-  
-  // Add start node to results
-  allResults.push({
-    nodeId: startNode.id,
-    success: true,
-    data: { message: 'Workflow execution started' },
-    timestamp: new Date().toISOString()
-  });
-  
-  // Queue for BFS traversal
-  const queue: { nodeId: string, previousResults: any }[] = [{ 
-    nodeId: startNode.id, 
-    previousResults: null 
-  }];
-  
-  // Track visited nodes to avoid cycles
-  const visited = new Set<string>();
+  const executionId = uuidv4();
+  const executionStartTime = Date.now();
   
   // Store results for each node to pass to next nodes
   const nodeResults = new Map<string, any>();
   nodeResults.set(startNode.id, { message: 'Workflow execution started' });
   
-  while (queue.length > 0) {
-    const { nodeId, previousResults } = queue.shift()!;
-    
-    if (visited.has(nodeId)) continue;
-    visited.add(nodeId);
-    
-    // Find next nodes
-    const nextNodes = findNextNodes(nodeId, edges, nodes);
-    
-    // Execute each next node
-    for (const node of nextNodes) {
-      try {
-        // Skip start nodes in the execution chain
-        if (node.type === 'start') continue;
-        
-        let data;
-        let success = true;
-        
-        // Handle different node types
-        if (node.type === 'output' || node.data.label === 'Output') {
-          // For output nodes, just pass through the previous results
-          data = previousResults || { message: 'No data received from previous nodes' };
-        } else if (node.data.label === 'Transform') {
-          try {
-            // For transform nodes, use OpenAI to clean the data
-            data = await executeTransformNode(node, previousResults);
-            success = true;
-          } catch (error: any) {
-            success = false;
-            data = error.message || 'Error transforming data';
-          }
-        } else {
-          // For API nodes, execute the API request
-          data = await executeNodeRequest(node);
-          // Check if there was an error
-          if (data && data.error) {
-            success = false;
-          }
-        }
-        
-        // Store the result for this node
-        nodeResults.set(node.id, data);
-        
-        allResults.push({
-          nodeId: node.id,
-          success: success,
-          data: data,
-          error: data && data.error ? data.error : undefined,
-          timestamp: new Date().toISOString()
-        });
-        
-        // Only continue to next nodes if this node was successful
-        if (success) {
-          // Add next nodes to the queue
-          queue.push({ 
-            nodeId: node.id, 
-            previousResults: data 
-          });
-        }
-      } catch (error: any) {
-        allResults.push({
-          nodeId: node.id,
-          success: false,
-          error: error.message || 'Unknown error',
-          timestamp: new Date().toISOString()
-        });
-        
-        // Don't continue from failed nodes
-      }
+  // Add start node to results
+  const allResults: ExecutionResult[] = [{
+    nodeId: startNode.id,
+    success: true,
+    data: { message: 'Workflow execution started' },
+    timestamp: new Date().toISOString()
+  }];
+  
+  return {
+    startNode,
+    executionId,
+    executionStartTime,
+    nodeResults,
+    allResults
+  };
+};
+
+/**
+ * Executes a single node in the workflow
+ */
+const executeNode = async (
+  node: Node, 
+  previousResults: any
+): Promise<{
+  success: boolean;
+  data: any;
+  error?: string;
+}> => {
+  try {
+    // Skip start nodes in the execution chain
+    if (node.type === 'start') {
+      return { success: true, data: { message: 'Start node skipped' } };
     }
-  }
-  
-  // If there are output nodes, filter results to only include nodes that lead to an output node
-  let finalResults: ExecutionResult[] = [];
-  if (hasOutput) {
-    // Create a set of node IDs that are connected to output nodes
-    const nodesConnectedToOutput = new Set<string>();
     
-    // Add all output nodes to the set
-    outputNodes.forEach(node => nodesConnectedToOutput.add(node.id));
-    
-    // For each node, check if it's connected to an output node
-    nodes.forEach(node => {
-      if (isConnectedToOutput(node.id, edges, nodes)) {
-        nodesConnectedToOutput.add(node.id);
+    // Handle different node types
+    if (node.type === 'output' || node.data.label === 'Output') {
+      // For output nodes, just pass through the previous results
+      return { 
+        success: true, 
+        data: previousResults || { message: 'No data received from previous nodes' }
+      };
+    } else if (node.data.label === 'Transform') {
+      try {
+        // For transform nodes, use OpenAI to clean the data
+        const data = await executeTransformNode(node, previousResults);
+        return { success: true, data };
+      } catch (error: any) {
+        return { 
+          success: false, 
+          data: null,
+          error: error.message || 'Error transforming data'
+        };
       }
-    });
-    
-    // Filter results to only include nodes that are connected to output
-    finalResults = allResults.filter(result => nodesConnectedToOutput.has(result.nodeId));
-  } else {
-    finalResults = hasOutput ? allResults : [];
+    } else {
+      // For API nodes, execute the API request
+      const data = await executeNodeRequest(node);
+      // Check if there was an error
+      if (data && data.error) {
+        return { 
+          success: false, 
+          data,
+          error: data.error 
+        };
+      }
+      return { success: true, data };
+    }
+  } catch (error: any) {
+    return { 
+      success: false, 
+      data: null,
+      error: error.message || 'Unknown error executing node'
+    };
   }
+};
+
+/**
+ * Filters results to only include nodes that lead to an output node
+ */
+const filterResultsForOutput = (
+  allResults: ExecutionResult[], 
+  nodes: Node[], 
+  edges: Edge[],
+  hasOutput: boolean
+): ExecutionResult[] => {
+  if (!hasOutput) return [];
   
+  // Create a set of node IDs that are connected to output nodes
+  const nodesConnectedToOutput = new Set<string>();
+  
+  // Add all output nodes to the set
+  const outputNodes = findOutputNodes(nodes);
+  outputNodes.forEach(node => nodesConnectedToOutput.add(node.id));
+  
+  // For each node, check if it's connected to an output node
+  nodes.forEach(node => {
+    if (isConnectedToOutput(node.id, edges, nodes)) {
+      nodesConnectedToOutput.add(node.id);
+    }
+  });
+  
+  // Filter results to only include nodes that are connected to output
+  return allResults.filter(result => nodesConnectedToOutput.has(result.nodeId));
+};
+
+/**
+ * Finalizes the workflow execution by calculating execution time and status
+ */
+const finalizeWorkflowExecution = async (
+  finalResults: ExecutionResult[],
+  executionStartTime: number,
+  executionId: string,
+  workflowId?: string,
+  workflowName?: string
+): Promise<ExecutionResult[]> => {
   // Calculate execution time
   const executionEndTime = Date.now();
   const executionTime = executionEndTime - executionStartTime;
@@ -366,4 +341,87 @@ export const executeWorkflow = async (nodes: Node[], edges: Edge[], workflowId?:
   }
   
   return finalResults;
+};
+
+/**
+ * Executes a workflow by starting at the start node and following connections
+ */
+export const executeWorkflow = async (
+  nodes: Node[], 
+  edges: Edge[], 
+  workflowId?: string, 
+  workflowName?: string
+): Promise<ExecutionResult[]> => {
+  // Prepare the workflow execution
+  const { 
+    startNode, 
+    executionId, 
+    executionStartTime, 
+    nodeResults,
+    allResults 
+  } = prepareWorkflowExecution(nodes, edges);
+  
+  // Check if the workflow has any output nodes
+  const outputNodes = findOutputNodes(nodes);
+  const hasOutput = outputNodes.length > 0;
+  
+  // Queue for BFS traversal
+  const queue: { nodeId: string, previousResults: any }[] = [{ 
+    nodeId: startNode.id, 
+    previousResults: null 
+  }];
+  
+  // Track visited nodes to avoid cycles
+  const visited = new Set<string>();
+  
+  while (queue.length > 0) {
+    const { nodeId, previousResults } = queue.shift()!;
+    
+    if (visited.has(nodeId)) continue;
+    visited.add(nodeId);
+    
+    // Find next nodes
+    const nextNodes = findNextNodes(nodeId, edges, nodes);
+    
+    // Execute each next node
+    for (const node of nextNodes) {
+      // Execute the node
+      const { success, data, error } = await executeNode(node, previousResults);
+      
+      // Store the result for this node
+      nodeResults.set(node.id, data);
+      
+      // Add to the results list
+      allResults.push({
+        nodeId: node.id,
+        success,
+        data,
+        error,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Only continue to next nodes if this node was successful
+      if (success) {
+        // Add next nodes to the queue
+        queue.push({ 
+          nodeId: node.id, 
+          previousResults: data 
+        });
+      }
+    }
+  }
+  
+  // Filter results if necessary
+  const filteredResults = hasOutput 
+    ? filterResultsForOutput(allResults, nodes, edges, hasOutput)
+    : allResults;
+  
+  // Finalize the execution
+  return finalizeWorkflowExecution(
+    filteredResults,
+    executionStartTime,
+    executionId,
+    workflowId,
+    workflowName
+  );
 };
