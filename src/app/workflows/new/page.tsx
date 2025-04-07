@@ -53,7 +53,15 @@ export default function NewWorkflow() {
     const newNode: Node = {
       id: `node_${nodes.length + 1}`,
       type: type === 'output' ? 'output' : 'default',
-      data: { label: type.charAt(0).toUpperCase() + type.slice(1) },
+      data: { 
+        label: type.charAt(0).toUpperCase() + type.slice(1),
+        apiRoute: type === 'api' ? {
+          url: '',
+          method: 'GET',
+          headers: {},
+          body: {}
+        } : undefined
+      },
       position: { 
         x: Math.random() * 300 + 100, 
         y: Math.random() * 200 + 100 

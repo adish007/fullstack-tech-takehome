@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { 
-  ReactFlow,
+  ReactFlow, 
   Background, 
   Controls, 
   MiniMap, 
@@ -15,9 +15,35 @@ import {
   Connection,
   Edge,
   Node,
+  NodeMouseHandler
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { Workflow } from '@/lib/workflowDatabase';
+
+// Define interface for workflow
+interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  nodes: any[];
+  edges: any[];
+}
+
+// Define interface for API route properties
+interface ApiRoute {
+  url: string;
+  method: string;
+  headers: Record<string, string>;
+  body: any;
+}
+
+// Define custom node data type with index signature
+interface NodeData {
+  label: string;
+  apiRoute?: ApiRoute;
+  [key: string]: any; // Add index signature to satisfy ReactFlow's constraints
+}
 
 export default function EditWorkflow() {
   const { id } = useParams();  // <-- Use useParams for route param
@@ -26,11 +52,13 @@ export default function EditWorkflow() {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [nodes, setNodes, onNodesChange] = useNodesState([] as Node[]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([] as Edge[]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node<NodeData>>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [selectedNode, setSelectedNode] = useState<Node<NodeData> | null>(null);
+  const [showNodeConfig, setShowNodeConfig] = useState(false);
 
   useEffect(() => {
     const fetchWorkflow = async () => {
@@ -62,10 +90,18 @@ export default function EditWorkflow() {
   };
 
   const handleAddNode = (type: string) => {
-    const newNode: Node = {
+    const newNode: Node<NodeData> = {
       id: `node_${Date.now()}`,
       type: type === 'output' ? 'output' : 'default',
-      data: { label: type.charAt(0).toUpperCase() + type.slice(1) },
+      data: { 
+        label: type.charAt(0).toUpperCase() + type.slice(1),
+        apiRoute: type === 'api' ? {
+          url: '',
+          method: 'GET',
+          headers: {},
+          body: {}
+        } : undefined
+      },
       position: { 
         x: Math.random() * 300 + 100, 
         y: Math.random() * 200 + 100,
@@ -139,6 +175,43 @@ export default function EditWorkflow() {
     } catch (err: any) {
       setError(err.message || 'An error occurred while deleting the workflow');
     }
+  };
+
+  const onNodeClick: NodeMouseHandler = (event, node) => {
+    setSelectedNode(node as Node<NodeData>);
+    if (node.type !== 'output' && node.data.label === 'Api') {
+      setShowNodeConfig(true);
+    }
+  };
+
+  const handleUpdateNodeConfig = () => {
+    if (!selectedNode) return;
+    
+    setNodes((nds) => 
+      nds.map((node) => {
+        if (node.id === selectedNode.id) {
+          return selectedNode;
+        }
+        return node;
+      })
+    );
+    
+    setShowNodeConfig(false);
+  };
+
+  const handleApiRouteChange = (field: string, value: any) => {
+    if (!selectedNode || !selectedNode.data.apiRoute) return;
+    
+    setSelectedNode({
+      ...selectedNode,
+      data: {
+        ...selectedNode.data,
+        apiRoute: {
+          ...selectedNode.data.apiRoute,
+          [field]: value
+        }
+      }
+    });
   };
 
   if (isLoading) {
@@ -260,6 +333,7 @@ export default function EditWorkflow() {
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodeClick={onNodeClick}
                 fitView
               >
                 <Background />
@@ -295,6 +369,96 @@ export default function EditWorkflow() {
           </div>
         </form>
       </div>
+
+      {/* Node Configuration Modal */}
+      {showNodeConfig && selectedNode && (selectedNode.data as NodeData).apiRoute && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-zinc-800 rounded-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-bold mb-4">Configure API Node</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block mb-1 text-sm font-medium">API URL</label>
+                <input
+                  type="text"
+                  value={(selectedNode.data as NodeData).apiRoute?.url || ''}
+                  onChange={(e) => handleApiRouteChange('url', e.target.value)}
+                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
+                  placeholder="https://api.example.com/endpoint"
+                />
+              </div>
+              
+              <div>
+                <label className="block mb-1 text-sm font-medium">Method</label>
+                <select
+                  value={(selectedNode.data as NodeData).apiRoute?.method || 'GET'}
+                  onChange={(e) => handleApiRouteChange('method', e.target.value)}
+                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500"
+                >
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="PATCH">PATCH</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block mb-1 text-sm font-medium">Headers (JSON)</label>
+                <textarea
+                  value={JSON.stringify((selectedNode.data as NodeData).apiRoute?.headers || {}, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      const headers = JSON.parse(e.target.value);
+                      handleApiRouteChange('headers', headers);
+                    } catch (err) {
+                      // Allow invalid JSON during editing
+                    }
+                  }}
+                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500 font-mono text-sm"
+                  rows={4}
+                  placeholder='{ "Content-Type": "application/json" }'
+                />
+              </div>
+              
+              <div>
+                <label className="block mb-1 text-sm font-medium">Body (JSON)</label>
+                <textarea
+                  value={JSON.stringify((selectedNode.data as NodeData).apiRoute?.body || {}, null, 2)}
+                  onChange={(e) => {
+                    try {
+                      const body = JSON.parse(e.target.value);
+                      handleApiRouteChange('body', body);
+                    } catch (err) {
+                      // Allow invalid JSON during editing
+                    }
+                  }}
+                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 focus:outline-none focus:border-orange-500 font-mono text-sm"
+                  rows={4}
+                  placeholder='{ "key": "value" }'
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                type="button"
+                onClick={() => setShowNodeConfig(false)}
+                className="px-4 py-2 border border-zinc-600 rounded-lg hover:bg-zinc-700 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdateNodeConfig}
+                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors"
+              >
+                Save Configuration
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

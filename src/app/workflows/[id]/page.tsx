@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -7,8 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Workflow } from '@/lib/workflowDatabase';
 import WorkflowViewer from '@/components/WorkflowViewer';
-import { Node, Edge } from '@xyflow/react';
+import { Node as XYFlowNode, Edge } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { executeWorkflow } from '@/lib/workflowExecutor';
 
 export default function WorkflowDetail() {
   const { id } = useParams();
@@ -17,6 +16,9 @@ export default function WorkflowDetail() {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isExecuting, setIsExecuting] = useState(false);
+  const [executionResults, setExecutionResults] = useState<any[]>([]);
+  const [executionError, setExecutionError] = useState('');
 
   useEffect(() => {
     const fetchWorkflow = async () => {
@@ -40,6 +42,26 @@ export default function WorkflowDetail() {
 
     fetchWorkflow();
   }, [id]);
+
+  const handleExecuteWorkflow = async () => {
+    if (!workflow) return;
+    
+    setIsExecuting(true);
+    setExecutionResults([]);
+    setExecutionError('');
+    
+    try {
+      const results = await executeWorkflow(
+        workflow.nodes as any[], 
+        workflow.edges as Edge[]
+      );
+      setExecutionResults(results);
+    } catch (err: any) {
+      setExecutionError(err.message || 'Failed to execute workflow');
+    } finally {
+      setIsExecuting(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -117,10 +139,51 @@ export default function WorkflowDetail() {
             <h2 className="font-bold">Workflow Diagram</h2>
           </div>
           <WorkflowViewer 
-            nodes={workflow.nodes as Node[]} 
+            nodes={workflow.nodes as XYFlowNode[]} 
             edges={workflow.edges as Edge[]} 
           />
         </div>
+
+        {executionResults.length > 0 && (
+          <div className="bg-zinc-900 rounded-lg border border-zinc-800 mb-6 overflow-hidden">
+            <div className="p-4 border-b border-zinc-800">
+              <h2 className="font-bold">Execution Results</h2>
+            </div>
+            <div className="p-4 max-h-96 overflow-y-auto">
+              {executionResults.map((result, index) => (
+                <div 
+                  key={index} 
+                  className={`mb-4 p-4 rounded-lg ${
+                    result.success ? 'bg-green-900/20 border border-green-800' : 'bg-red-900/20 border border-red-800'
+                  }`}
+                >
+                  <div className="flex justify-between mb-2">
+                    <h3 className="font-medium">
+                      Node: {result.nodeId}
+                    </h3>
+                    <span className="text-sm text-zinc-400">
+                      {new Date(result.timestamp).toLocaleTimeString()}
+                    </span>
+                  </div>
+                  {result.success ? (
+                    <div className="bg-zinc-800 p-3 rounded overflow-x-auto">
+                      <pre className="text-sm">{JSON.stringify(result.data, null, 2)}</pre>
+                    </div>
+                  ) : (
+                    <p className="text-red-300">{result.error}</p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {executionError && (
+          <div className="bg-red-900/30 border border-red-800 text-red-200 p-4 rounded-lg mb-6">
+            <h3 className="font-bold mb-2">Execution Error</h3>
+            <p>{executionError}</p>
+          </div>
+        )}
 
         <div className="flex justify-between">
           <button
@@ -131,10 +194,25 @@ export default function WorkflowDetail() {
           </button>
 
           <button
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-            onClick={() => alert('Execute functionality would be implemented here')}
+            className={`${
+              isExecuting 
+                ? 'bg-gray-600 cursor-not-allowed' 
+                : 'bg-green-600 hover:bg-green-700'
+            } text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center`}
+            onClick={handleExecuteWorkflow}
+            disabled={isExecuting}
           >
-            Execute Workflow
+            {isExecuting ? (
+              <>
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Executing...
+              </>
+            ) : (
+              'Execute Workflow'
+            )}
           </button>
         </div>
       </div>
