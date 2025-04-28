@@ -1,4 +1,4 @@
-# Workflow Builder Take-Home Project
+# Workflow Builder Project
 
 ## Project Overview
 
